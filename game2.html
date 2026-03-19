@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>記憶配對 · 我的遊戲館</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', '微軟正黑體', Arial, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin: 0;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 25px;
+            color: #aaccff;
+            font-size: 1.3rem;
+            text-decoration: none;
+            background: #2d2d44;
+            padding: 8px 25px;
+            border-radius: 40px;
+            transition: 0.2s;
+        }
+        .back-link:hover {
+            background: #3d3d5c;
+            color: white;
+        }
+        .game-container {
+            background: #23233a;
+            max-width: 550px;
+            margin: 0 auto;
+            padding: 30px;
+            border-radius: 50px;
+            box-shadow: 0 15px 0 #0d0d1a;
+        }
+        h2 {
+            font-size: 3rem;
+            margin: 0 0 10px;
+            color: #ffb347;
+        }
+        .sub-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0f1420;
+            border-radius: 60px;
+            padding: 12px 25px;
+            margin: 15px 0 25px;
+            border: 2px solid #ffb347;
+            font-size: 1.6rem;
+        }
+        .pairs-matched {
+            background: #2a2a44;
+            padding: 8px 25px;
+            border-radius: 40px;
+            color: #ffd966;
+            font-weight: bold;
+        }
+        .message {
+            font-size: 1.8rem;
+            color: #b8d0ff;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            justify-content: center;
+            margin: 25px 0;
+        }
+        .card {
+            aspect-ratio: 1 / 1;
+            background: linear-gradient(145deg, #3e4b5e, #2a3440);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #151e2a, 0 0 0 2px #5f7a9a;
+            transition: 0.15s;
+            color: white;
+        }
+        .card.flipped {
+            background: #f5e56b;
+            background: linear-gradient(145deg, #f3d779, #e6b422);
+            box-shadow: 0 8px 0 #b2741e, 0 0 0 3px #ffe484;
+            color: #1a1a2e;
+            transform: scale(1.02);
+        }
+        .card.matched {
+            background: #4caf9e;
+            background: linear-gradient(145deg, #6ad4b3, #2a9d8f);
+            box-shadow: 0 8px 0 #1e6b5e, 0 0 0 3px #a0f0d0;
+            color: #ffffff;
+            cursor: default;
+            opacity: 0.8;
+            transform: scale(0.98);
+        }
+        .card:active:not(.flipped):not(.matched) {
+            transform: translateY(5px);
+            box-shadow: 0 3px 0 #151e2a;
+        }
+        .reset-btn {
+            background: #7a5d3c;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            padding: 15px 40px;
+            border-radius: 60px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #4d3b25;
+            font-weight: bold;
+            transition: 0.2s;
+            margin-top: 15px;
+        }
+        .reset-btn:hover {
+            background: #9b784f;
+            transform: translateY(-3px);
+            box-shadow: 0 11px 0 #4d3b25;
+        }
+        .footer-note {
+            margin-top: 20px;
+            color: #7a7a9e;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">⬅️ 返回主頁</a>
+    <div class="game-container">
+        <h2>🧠 記憶配對</h2>
+        <div class="sub-header">
+            <span>已配對</span>
+            <span class="pairs-matched" id="pairsCount">0 / 8</span>
+        </div>
+        <div class="grid" id="memoryGrid"></div>
+        <div class="message" id="winMessage"></div>
+        <button class="reset-btn" id="resetGame">🔄 新一局</button>
+        <div class="footer-note">點擊卡片翻牌，配對所有表情符號</div>
+    </div>
+
+    <script>
+        (function() {
+            const emojis = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼'];
+            
+            let cards = [];
+            let flippedIndexes = [];
+            let matchedPairs = 0;
+            let lockBoard = false;
+            let timeoutHandle = null;
+
+            const gridElement = document.getElementById('memoryGrid');
+            const pairsSpan = document.getElementById('pairsCount');
+            const winMessageDiv = document.getElementById('winMessage');
+
+            function initCards() {
+                let deck = [...emojis, ...emojis];
+                for (let i = deck.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [deck[i], deck[j]] = [deck[j], deck[i]];
+                }
+                cards = deck.map((emoji, index) => ({
+                    id: index,
+                    emoji: emoji,
+                    matched: false,
+                    flipped: false
+                }));
+                flippedIndexes = [];
+                matchedPairs = 0;
+                lockBoard = false;
+                if (timeoutHandle) clearTimeout(timeoutHandle);
+                updatePairsDisplay();
+                winMessageDiv.textContent = '';
+            }
+
+            function updatePairsDisplay() {
+                pairsSpan.textContent = `${matchedPairs} / 8`;
+            }
+
+            function checkWin() {
+                if (matchedPairs === 8) {
+                    winMessageDiv.textContent = '🎉 恭喜！你完成了所有配對！ 🎉';
+                } else {
+                    winMessageDiv.textContent = '';
+                }
+            }
+
+            function renderBoard() {
+                gridElement.innerHTML = '';
+                cards.forEach((card, index) => {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = 'card';
+                    if (card.matched) {
+                        cardDiv.classList.add('matched');
+                        cardDiv.textContent = card.emoji;
+                    } else if (card.flipped) {
+                        cardDiv.classList.add('flipped');
+                        cardDiv.textContent = card.emoji;
+                    } else {
+                        cardDiv.textContent = '?';
+                    }
+                    cardDiv.dataset.index = index;
+                    cardDiv.addEventListener('click', () => onCardClick(index));
+                    gridElement.appendChild(cardDiv);
+                });
+            }
+
+            function onCardClick(index) {
+                if (lockBoard) return;
+                if (cards[index].matched) return;
+                if (cards[index].flipped) return;
+                if (flippedIndexes.length === 2) return;
+
+                cards[index].flipped = true;
+                flippedIndexes.push(index);
+                renderBoard();
+
+                if (flippedIndexes.length === 2) {
+                    checkMatch();
+                }
+            }
+
+            function checkMatch() {
+                const [idx1, idx2] = flippedIndexes;
+                const card1 = cards[idx1];
+                const card2 = cards[idx2];
+
+                if (card1.emoji === card2.emoji) {
+                    card1.matched = true;
+                    card2.matched = true;
+                    matchedPairs++;
+                    updatePairsDisplay();
+
+                    flippedIndexes = [];
+                    renderBoard();
+                    checkWin();
+                } else {
+                    lockBoard = true;
+                    timeoutHandle = setTimeout(() => {
+                        card1.flipped = false;
+                        card2.flipped = false;
+                        flippedIndexes = [];
+                        lockBoard = false;
+                        renderBoard();
+                        timeoutHandle = null;
+                    }, 800);
+                    renderBoard();
+                }
+            }
+
+            function resetGame() {
+                if (timeoutHandle) {
+                    clearTimeout(timeoutHandle);
+                    timeoutHandle = null;
+                }
+                initCards();
+                renderBoard();
+            }
+
+            initCards();
+            renderBoard();
+
+            document.getElementById('resetGame').addEventListener('click', resetGame);
+        })();
+    </script>
+</body>
+</html>
