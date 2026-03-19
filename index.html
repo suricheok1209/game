@@ -3,74 +3,337 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎮 我的遊戲館</title>
+    <title>🎮 我的遊戲館 · 經典重現</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', '微軟正黑體', Arial, sans-serif;
-            background: #1a1a2e;
+            background: linear-gradient(145deg, #14182b 0%, #1a1a2e 100%);
             color: white;
             text-align: center;
-            padding: 40px;
-            margin: 0;
+            padding: 0 20px 40px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            text-shadow: 0 0 15px #00a8ff;
+
+        /* 主要容器 */
+        .main-wrapper {
+            max-width: 1200px;
+            width: 100%;
         }
-        .games {
+
+        /* 頂部橫幅 */
+        .hero {
+            background: rgba(10, 15, 30, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 60px;
+            padding: 40px 30px;
+            margin: 30px 0 40px;
+            border: 2px solid #4a6fa5;
+            box-shadow: 0 15px 0 #0a0f1a, 0 0 30px #2a4a7a;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffd966, #ffb347);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px #ffa500;
+            margin-bottom: 15px;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            color: #b8d0ff;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        /* 特色區塊 */
+        .features {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 25px;
-            max-width: 900px;
+            margin: 50px 0;
+        }
+
+        .feature-card {
+            background: #1f2a41;
+            padding: 25px 20px;
+            border-radius: 30px;
+            flex: 1 1 200px;
+            max-width: 260px;
+            box-shadow: 0 10px 0 #0f1422, 0 0 0 2px #3e5770;
+            transition: transform 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffb347;
+            margin-bottom: 8px;
+        }
+
+        .feature-desc {
+            font-size: 1.1rem;
+            color: #b0c6e0;
+        }
+
+        /* 主遊戲卡片區域 */
+        .section-title {
+            font-size: 2.8rem;
+            margin: 60px 0 30px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80%;
+            height: 4px;
+            background: #ffb347;
+            margin: 10px auto 0;
+            border-radius: 4px;
+            box-shadow: 0 0 15px #ffa500;
+        }
+
+        .games-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
             margin: 40px auto;
         }
+
         .game-card {
             background: #2d2d44;
-            padding: 30px 40px;
-            border-radius: 20px;
+            padding: 30px 30px 40px;
+            border-radius: 30px;
             text-decoration: none;
             color: white;
             transition: 0.3s;
-            box-shadow: 0 8px 0 #0f0f1f;
-            min-width: 150px;
+            box-shadow: 0 12px 0 #0f0f1f, 0 0 0 2px #4f6b8a;
+            min-width: 240px;
+            flex: 1 1 260px;
+            max-width: 300px;
         }
+
         .game-card:hover {
             background: #3d3d5c;
-            transform: translateY(-5px);
-            box-shadow: 0 13px 0 #0f0f1f;
+            transform: translateY(-8px);
+            box-shadow: 0 18px 0 #0f0f1f, 0 0 20px #6a8bbf;
         }
+
         .icon {
-            font-size: 4rem;
+            font-size: 5rem;
+            margin-bottom: 15px;
+        }
+
+        .game-title {
+            font-size: 2.2rem;
+            font-weight: 700;
             margin-bottom: 10px;
+            color: #ffd966;
         }
-        .game-card div:last-child {
-            font-size: 1.8rem;
-            font-weight: bold;
+
+        .game-desc {
+            font-size: 1.2rem;
+            color: #b0c4de;
+            margin-bottom: 15px;
         }
+
+        .play-badge {
+            background: #4a6fa5;
+            padding: 8px 20px;
+            border-radius: 40px;
+            display: inline-block;
+            font-size: 1.3rem;
+            font-weight: 600;
+            box-shadow: 0 5px 0 #1e2f47;
+        }
+
+        /* 額外推薦區（可選） */
+        .featured-section {
+            background: #1a2335;
+            border-radius: 50px;
+            padding: 30px;
+            margin: 50px 0;
+            border: 2px solid #ffb347;
+        }
+
+        .featured-title {
+            font-size: 2.2rem;
+            color: #ffd966;
+            margin-bottom: 25px;
+        }
+
+        .mini-games {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .mini-item {
+            background: #252f44;
+            border-radius: 30px;
+            padding: 20px;
+            width: 160px;
+            box-shadow: 0 8px 0 #121827;
+        }
+
+        .mini-icon {
+            font-size: 3rem;
+        }
+
+        .mini-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #ffb347;
+        }
+
+        /* 頁腳 */
         footer {
-            margin-top: 50px;
-            color: #7a7a9e;
+            margin-top: 70px;
+            padding: 30px;
+            background: #0e1322;
+            border-radius: 60px 60px 0 0;
+            width: 100%;
+            border-top: 2px solid #4a6fa5;
+            color: #a1b5d9;
+            font-size: 1.2rem;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin: 20px 0 10px;
+            font-size: 2rem;
+        }
+
+        .social-links a {
+            color: #ffb347;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .social-links a:hover {
+            color: #ffd966;
+            transform: scale(1.2);
+        }
+
+        /* 響應式微調 */
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 2.8rem; }
+            .section-title { font-size: 2.2rem; }
+            .game-card { min-width: 200px; }
         }
     </style>
 </head>
 <body>
-    <h1>🎮 我的遊戲館</h1>
-    <div class="games">
-        <a href="game1.html" class="game-card">
-            <div class="icon">🔢</div>
-            <div>猜數字</div>
-        </a>
-        <a href="game2.html" class="game-card">
-            <div class="icon">🧠</div>
-            <div>記憶配對</div>
-        </a>
-        <a href="game3.html" class="game-card">
-            <div class="icon">🐍</div>
-            <div>貪吃蛇</div>
-        </a>
+    <div class="main-wrapper">
+        <!-- 英雄橫幅 -->
+        <div class="hero">
+            <h1>🎮 我的遊戲館</h1>
+            <p>經典懷舊・免費暢玩・持續更新<br>點擊卡片立即開始你的遊戲之旅</p>
+        </div>
+
+        <!-- 特色介紹區塊 -->
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🕹️</div>
+                <div class="feature-title">經典懷舊</div>
+                <div class="feature-desc">猜數字、記憶配對、貪吃蛇，重溫不敗經典</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <div class="feature-title">免費暢玩</div>
+                <div class="feature-desc">全部遊戲無需付費，即開即玩</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🚀</div>
+                <div class="feature-title">持續更新</div>
+                <div class="feature-desc">更多趣味遊戲陸續上架，敬請期待</div>
+            </div>
+        </div>
+
+        <!-- 主遊戲區標題 -->
+        <div class="section-title">🔥 精選遊戲 🔥</div>
+
+        <!-- 主要遊戲卡片 (三款) -->
+        <div class="games-grid">
+            <a href="game1.html" class="game-card">
+                <div class="icon">🔢</div>
+                <div class="game-title">猜數字</div>
+                <div class="game-desc">1~100 之間猜中神秘數字</div>
+                <span class="play-badge">▶ 開始挑戰</span>
+            </a>
+            <a href="game2.html" class="game-card">
+                <div class="icon">🧠</div>
+                <div class="game-title">記憶配對</div>
+                <div class="game-desc">翻牌考驗你的記憶力</div>
+                <span class="play-badge">▶ 開始挑戰</span>
+            </a>
+            <a href="game3.html" class="game-card">
+                <div class="icon">🐍</div>
+                <div class="game-title">貪吃蛇</div>
+                <div class="game-desc">經典貪吃蛇，三級難度</div>
+                <span class="play-badge">▶ 開始挑戰</span>
+            </a>
+        </div>
+
+        <!-- 熱門推薦小區塊 (可選) -->
+        <div class="featured-section">
+            <div class="featured-title">⭐ 最多人玩 ⭐</div>
+            <div class="mini-games">
+                <div class="mini-item">
+                    <div class="mini-icon">🐍</div>
+                    <div class="mini-name">貪吃蛇</div>
+                </div>
+                <div class="mini-item">
+                    <div class="mini-icon">🧠</div>
+                    <div class="mini-name">記憶配對</div>
+                </div>
+                <div class="mini-item">
+                    <div class="mini-icon">🔢</div>
+                    <div class="mini-name">猜數字</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 頁腳 -->
+        <footer>
+            <div>© 2026 我的遊戲館 · 所有遊戲免費提供</div>
+            <div class="social-links">
+                <a href="#" target="_blank">📘</a>
+                <a href="#" target="_blank">🐦</a>
+                <a href="#" target="_blank">📺</a>
+                <a href="#" target="_blank">💬</a>
+            </div>
+            <div style="font-size: 1rem; margin-top: 15px;">懷舊永不退流行 · 開心就在遊戲館</div>
+        </footer>
     </div>
-    <footer>⬅️ 點擊卡片進入遊戲</footer>
 </body>
 </html>
