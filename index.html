@@ -2,8 +2,8 @@
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎮 我的遊戲館 · 經典重現</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>🎮 我的遊戲館 · 經典再現</title>
     <style>
         * {
             margin: 0;
@@ -23,13 +23,11 @@
             align-items: center;
         }
 
-        /* 主要容器 */
         .main-wrapper {
             max-width: 1200px;
             width: 100%;
         }
 
-        /* 頂部橫幅 */
         .hero {
             background: rgba(10, 15, 30, 0.7);
             backdrop-filter: blur(8px);
@@ -59,7 +57,6 @@
             line-height: 1.5;
         }
 
-        /* 特色區塊 */
         .features {
             display: flex;
             flex-wrap: wrap;
@@ -99,7 +96,6 @@
             color: #b0c6e0;
         }
 
-        /* 主遊戲卡片區域 */
         .section-title {
             font-size: 2.8rem;
             margin: 60px 0 30px;
@@ -173,7 +169,6 @@
             box-shadow: 0 5px 0 #1e2f47;
         }
 
-        /* 額外推薦區（可選） */
         .featured-section {
             background: #1a2335;
             border-radius: 50px;
@@ -213,7 +208,6 @@
             color: #ffb347;
         }
 
-        /* 頁腳 */
         footer {
             margin-top: 70px;
             padding: 30px;
@@ -244,7 +238,6 @@
             transform: scale(1.2);
         }
 
-        /* 響應式微調 */
         @media (max-width: 600px) {
             .hero h1 { font-size: 2.8rem; }
             .section-title { font-size: 2.2rem; }
@@ -254,13 +247,11 @@
 </head>
 <body>
     <div class="main-wrapper">
-        <!-- 英雄橫幅 -->
         <div class="hero">
             <h1>🎮 我的遊戲館</h1>
             <p>經典懷舊・免費暢玩・持續更新<br>點擊卡片立即開始你的遊戲之旅</p>
         </div>
 
-        <!-- 特色介紹區塊 -->
         <div class="features">
             <div class="feature-card">
                 <div class="feature-icon">🕹️</div>
@@ -279,32 +270,29 @@
             </div>
         </div>
 
-        <!-- 主遊戲區標題 -->
         <div class="section-title">🔥 精選遊戲 🔥</div>
 
-        <!-- 主要遊戲卡片 (三款) -->
         <div class="games-grid">
             <a href="game1.html" class="game-card">
                 <div class="icon">🔢</div>
                 <div class="game-title">猜數字</div>
-                <div class="game-desc">1~100 之間猜中神秘數字</div>
+                <div class="game-desc">1~100 猜中神秘數字，挑戰最少步數</div>
                 <span class="play-badge">▶ 開始挑戰</span>
             </a>
             <a href="game2.html" class="game-card">
                 <div class="icon">🧠</div>
                 <div class="game-title">記憶配對</div>
-                <div class="game-desc">翻牌考驗你的記憶力</div>
+                <div class="game-desc">翻牌配對，考驗你的記憶與策略</div>
                 <span class="play-badge">▶ 開始挑戰</span>
             </a>
             <a href="game3.html" class="game-card">
                 <div class="icon">🐍</div>
                 <div class="game-title">貪吃蛇</div>
-                <div class="game-desc">經典貪吃蛇，三級難度</div>
+                <div class="game-desc">經典貪吃蛇，三級難度，挑戰最高分</div>
                 <span class="play-badge">▶ 開始挑戰</span>
             </a>
         </div>
 
-        <!-- 熱門推薦小區塊 (可選) -->
         <div class="featured-section">
             <div class="featured-title">⭐ 最多人玩 ⭐</div>
             <div class="mini-games">
@@ -323,7 +311,6 @@
             </div>
         </div>
 
-        <!-- 頁腳 -->
         <footer>
             <div>© 2026 我的遊戲館 · 所有遊戲免費提供</div>
             <div class="social-links">

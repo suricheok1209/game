@@ -2,7 +2,7 @@
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>記憶配對 · 我的遊戲館</title>
     <style>
         body {
@@ -41,20 +41,19 @@
             margin: 0 0 10px;
             color: #ffb347;
         }
-        .sub-header {
+        .stats {
             display: flex;
             justify-content: space-between;
-            align-items: center;
             background: #0f1420;
             border-radius: 60px;
             padding: 12px 25px;
             margin: 15px 0 25px;
             border: 2px solid #ffb347;
-            font-size: 1.6rem;
+            font-size: 1.4rem;
         }
-        .pairs-matched {
+        .pairs-matched, .steps {
             background: #2a2a44;
-            padding: 8px 25px;
+            padding: 6px 20px;
             border-radius: 40px;
             color: #ffd966;
             font-weight: bold;
@@ -62,6 +61,7 @@
         .message {
             font-size: 1.8rem;
             color: #b8d0ff;
+            margin-top: 10px;
         }
         .grid {
             display: grid;
@@ -126,15 +126,19 @@
             color: #7a7a9e;
             font-size: 1.2rem;
         }
+        @media (max-width: 500px) {
+            .card { font-size: 2rem; }
+            .stats { font-size: 1rem; flex-direction: column; gap: 8px; align-items: center; }
+        }
     </style>
 </head>
 <body>
     <a href="index.html" class="back-link">⬅️ 返回主頁</a>
     <div class="game-container">
         <h2>🧠 記憶配對</h2>
-        <div class="sub-header">
-            <span>已配對</span>
-            <span class="pairs-matched" id="pairsCount">0 / 8</span>
+        <div class="stats">
+            <span>✅ 已配對：<span class="pairs-matched" id="pairsCount">0 / 8</span></span>
+            <span>🔢 步數：<span class="steps" id="stepsCount">0</span></span>
         </div>
         <div class="grid" id="memoryGrid"></div>
         <div class="message" id="winMessage"></div>
@@ -149,12 +153,36 @@
             let cards = [];
             let flippedIndexes = [];
             let matchedPairs = 0;
+            let steps = 0;               // 每成功配對一組算一步（實際上是每兩張牌翻開檢查算一步）
             let lockBoard = false;
             let timeoutHandle = null;
+            let bestSteps = localStorage.getItem('memoryBest') ? parseInt(localStorage.getItem('memoryBest')) : null;
 
             const gridElement = document.getElementById('memoryGrid');
             const pairsSpan = document.getElementById('pairsCount');
+            const stepsSpan = document.getElementById('stepsCount');
             const winMessageDiv = document.getElementById('winMessage');
+
+            function updateStats() {
+                pairsSpan.textContent = `${matchedPairs} / 8`;
+                stepsSpan.textContent = steps;
+            }
+
+            function checkWin() {
+                if (matchedPairs === 8) {
+                    let msg = `🎉 恭喜完成！ 步數：${steps}`;
+                    if (bestSteps === null || steps < bestSteps) {
+                        bestSteps = steps;
+                        localStorage.setItem('memoryBest', bestSteps);
+                        msg += ` 🏆 新紀錄！最佳步數 ${bestSteps}`;
+                    } else {
+                        msg += `  最佳紀錄：${bestSteps} 步`;
+                    }
+                    winMessageDiv.textContent = msg;
+                } else {
+                    winMessageDiv.textContent = '';
+                }
+            }
 
             function initCards() {
                 let deck = [...emojis, ...emojis];
@@ -170,22 +198,11 @@
                 }));
                 flippedIndexes = [];
                 matchedPairs = 0;
+                steps = 0;
                 lockBoard = false;
                 if (timeoutHandle) clearTimeout(timeoutHandle);
-                updatePairsDisplay();
+                updateStats();
                 winMessageDiv.textContent = '';
-            }
-
-            function updatePairsDisplay() {
-                pairsSpan.textContent = `${matchedPairs} / 8`;
-            }
-
-            function checkWin() {
-                if (matchedPairs === 8) {
-                    winMessageDiv.textContent = '🎉 恭喜！你完成了所有配對！ 🎉';
-                } else {
-                    winMessageDiv.textContent = '';
-                }
             }
 
             function renderBoard() {
@@ -219,6 +236,8 @@
                 renderBoard();
 
                 if (flippedIndexes.length === 2) {
+                    steps++;
+                    updateStats();
                     checkMatch();
                 }
             }
@@ -232,8 +251,7 @@
                     card1.matched = true;
                     card2.matched = true;
                     matchedPairs++;
-                    updatePairsDisplay();
-
+                    updateStats();
                     flippedIndexes = [];
                     renderBoard();
                     checkWin();

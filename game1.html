@@ -2,7 +2,7 @@
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>猜數字 · 我的遊戲館</title>
     <style>
         body {
@@ -40,6 +40,15 @@
             font-size: 2.5rem;
             margin: 0 0 10px;
             color: #ffd966;
+        }
+        .best {
+            background: #0f1420;
+            padding: 8px 20px;
+            border-radius: 40px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            color: #ffb347;
         }
         .target-range {
             font-size: 1.3rem;
@@ -106,6 +115,7 @@
     <a href="index.html" class="back-link">⬅️ 返回主頁</a>
     <div class="game-container">
         <h2>🔢 猜數字</h2>
+        <div class="best" id="bestScore">🏆 最佳紀錄：--</div>
         <div class="target-range">1 ~ 100</div>
         <input type="number" id="guessInput" min="1" max="100" placeholder="輸入數字" value="">
         <div class="buttons">
@@ -120,9 +130,29 @@
         (function() {
             let secretNumber = Math.floor(Math.random() * 100) + 1;
             let attempts = 0;
+            let bestAttempts = localStorage.getItem('guessBest') ? parseInt(localStorage.getItem('guessBest')) : null;
+
             const guessInput = document.getElementById('guessInput');
             const messageDiv = document.getElementById('message');
             const attemptsSpan = document.getElementById('attempts');
+            const bestSpan = document.getElementById('bestScore');
+
+            function updateBestDisplay() {
+                if (bestAttempts) {
+                    bestSpan.textContent = `🏆 最佳紀錄：${bestAttempts} 次`;
+                } else {
+                    bestSpan.textContent = `🏆 最佳紀錄：--`;
+                }
+            }
+
+            function checkAndUpdateBest() {
+                if (bestAttempts === null || attempts < bestAttempts) {
+                    bestAttempts = attempts;
+                    localStorage.setItem('guessBest', bestAttempts);
+                    updateBestDisplay();
+                    messageDiv.textContent = `🎉 新紀錄！${bestAttempts} 次猜中！ 🎉`;
+                }
+            }
 
             function resetGame() {
                 secretNumber = Math.floor(Math.random() * 100) + 1;
@@ -144,6 +174,7 @@
 
                 if (val === secretNumber) {
                     messageDiv.textContent = `🎉 猜中了！ 就是 ${secretNumber} ！`;
+                    checkAndUpdateBest();
                 } else if (val < secretNumber) {
                     messageDiv.textContent = '📉 太小了，再大一點';
                 } else {
@@ -161,6 +192,7 @@
                 }
             });
 
+            updateBestDisplay();
             resetGame();
         })();
     </script>

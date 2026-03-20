@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>貪吃蛇 · 我的遊戲館</title>
     <style>
         * {
@@ -57,6 +57,8 @@
             align-items: baseline;
             margin-bottom: 16px;
             padding: 0 8px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .title {
@@ -72,11 +74,11 @@
 
         .score-board {
             background: #1f2a33;
-            padding: 8px 24px;
+            padding: 8px 20px;
             border-radius: 60px;
             border: 1px solid #ffb347;
             box-shadow: 0 0 15px #ff8c00, inset 0 2px 5px #0b0e10;
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             font-weight: 800;
             color: #ffd966;
             display: flex;
@@ -85,7 +87,7 @@
         }
 
         .score-board span {
-            font-size: 2.5rem;
+            font-size: 2rem;
             line-height: 1;
             color: #fff3b0;
             text-shadow: 0 0 10px #ffb703;
@@ -129,8 +131,10 @@
         canvas {
             display: block;
             margin: 0 auto;
-            width: 400px;
-            height: 400px;
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            aspect-ratio: 1 / 1;
             border-radius: 24px;
             background: black;
             box-shadow: 0 0 0 3px #4a5b6e, 0 15px 25px rgba(0,0,0,0.7);
@@ -149,12 +153,15 @@
             border-radius: 60px;
             border: 1px solid #3f5368;
             font-size: 1.1rem;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .hint {
             display: flex;
             gap: 24px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .hint kbd {
@@ -168,15 +175,30 @@
             font-size: 1rem;
         }
 
-        .hint span {
+        .virtual-buttons {
             display: flex;
-            align-items: center;
-            gap: 8px;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
         }
 
-        .hint span:last-child kbd {
-            background: #2a3f36;
-            color: #b6ffb6;
+        .dir-btn {
+            background: #2a3f4e;
+            border: none;
+            font-size: 2rem;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 5px 0 #0f1a22;
+            transition: 0.05s linear;
+        }
+        .dir-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #0f1a22;
+        }
+        @media (min-width: 601px) {
+            .virtual-buttons { display: none; }
         }
     </style>
 </head>
@@ -187,6 +209,8 @@
             <div class="title">🐍 貪吃蛇</div>
             <div class="score-board">
                 🍎 <span id="scoreDisplay">0</span>
+                <span style="font-size:1rem;">&nbsp;|&nbsp;</span>
+                <span id="highScoreDisplay" style="font-size:1.4rem;">🏆 0</span>
             </div>
         </div>
 
@@ -204,6 +228,12 @@
                 <span><kbd>空格</kbd> 重生</span>
             </div>
         </div>
+        <div class="virtual-buttons">
+            <button class="dir-btn" data-dir="up">⬆️</button>
+            <button class="dir-btn" data-dir="left">⬅️</button>
+            <button class="dir-btn" data-dir="down">⬇️</button>
+            <button class="dir-btn" data-dir="right">➡️</button>
+        </div>
     </div>
 
     <script>
@@ -211,9 +241,10 @@
             const canvas = document.getElementById('gameCanvas');
             const ctx = canvas.getContext('2d');
             const scoreSpan = document.getElementById('scoreDisplay');
+            const highScoreSpan = document.getElementById('highScoreDisplay');
 
             const GRID_SIZE = 20;
-            const CELL_SIZE = 20;
+            const CELL_SIZE = 20; // 畫布固定 400x400
 
             const speedMap = {
                 low: 250,
@@ -233,330 +264,239 @@
             let win = false;
             let intervalId = null;
 
+            let highScore = localStorage.getItem('snakeHighScore') ? parseInt(localStorage.getItem('snakeHighScore')) : 0;
+            highScoreSpan.textContent = highScore;
+
             const difficultyBtns = document.querySelectorAll('.difficulty-btn');
 
             function updateScoreDisplay() {
                 scoreSpan.textContent = score;
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('snakeHighScore', highScore);
+                    highScoreSpan.textContent = highScore;
+                }
             }
 
             function generateApple() {
                 const snakeSet = new Set(snake.map(seg => `${seg[0]},${seg[1]}`));
                 const freeCells = [];
-
                 for (let row = 0; row < GRID_SIZE; row++) {
                     for (let col = 0; col < GRID_SIZE; col++) {
-                        if (!snakeSet.has(`${col},${row}`)) {
-                            freeCells.push([col, row]);
-                        }
+                        if (!snakeSet.has(`${col},${row}`)) freeCells.push([col, row]);
                     }
                 }
-
                 if (freeCells.length === 0) return false;
-
                 const randomIndex = Math.floor(Math.random() * freeCells.length);
                 apple = { x: freeCells[randomIndex][0], y: freeCells[randomIndex][1] };
                 return true;
             }
 
             function resetGame() {
-                if (intervalId) {
-                    clearInterval(intervalId);
-                    intervalId = null;
-                }
-
-                snake = [
-                    [10, 10],
-                    [9, 10],
-                    [8, 10]
-                ];
-                direction = [1, 0];
-                nextDirection = [1, 0];
+                if (intervalId) clearInterval(intervalId);
+                snake = [[10,10],[9,10],[8,10]];
+                direction = [1,0];
+                nextDirection = [1,0];
                 score = 0;
                 gameActive = true;
                 win = false;
-
-                const success = generateApple();
-                if (!success) {
-                    gameActive = false;
-                    win = true;
-                }
-
                 updateScoreDisplay();
+                const success = generateApple();
+                if (!success) { gameActive = false; win = true; }
                 draw();
-
-                if (gameActive) {
-                    intervalId = setInterval(move, currentInterval);
-                }
+                if (gameActive) intervalId = setInterval(move, currentInterval);
             }
 
             function move() {
                 if (!gameActive) return;
-
                 if (nextDirection) {
                     const isOpposite = (direction[0] === -nextDirection[0] && direction[1] === -nextDirection[1]);
-                    if (!(snake.length > 1 && isOpposite)) {
-                        direction = [nextDirection[0], nextDirection[1]];
-                    }
+                    if (!(snake.length > 1 && isOpposite)) direction = [nextDirection[0], nextDirection[1]];
                 }
-
                 const head = snake[0];
                 const newHeadX = head[0] + direction[0];
                 const newHeadY = head[1] + direction[1];
-
                 if (newHeadX < 0 || newHeadX >= GRID_SIZE || newHeadY < 0 || newHeadY >= GRID_SIZE) {
-                    gameActive = false;
-                    win = false;
-                    clearInterval(intervalId);
-                    intervalId = null;
-                    draw();
-                    return;
+                    gameActive = false; win = false; clearInterval(intervalId); intervalId = null; draw(); return;
                 }
-
                 const ateApple = (newHeadX === apple.x && newHeadY === apple.y);
-
                 let newSnake;
-                if (ateApple) {
-                    newSnake = [[newHeadX, newHeadY], ...snake];
-                } else {
-                    newSnake = [[newHeadX, newHeadY], ...snake.slice(0, -1)];
-                }
-
-                const headSegment = newSnake[0];
+                if (ateApple) newSnake = [[newHeadX, newHeadY], ...snake];
+                else newSnake = [[newHeadX, newHeadY], ...snake.slice(0, -1)];
+                const headSeg = newSnake[0];
                 const bodyWithoutHead = newSnake.slice(1);
-                const collidesWithSelf = bodyWithoutHead.some(seg => seg[0] === headSegment[0] && seg[1] === headSegment[1]);
-
-                if (collidesWithSelf) {
-                    gameActive = false;
-                    win = false;
-                    clearInterval(intervalId);
-                    intervalId = null;
-                    snake = newSnake;
-                    draw();
-                    return;
+                if (bodyWithoutHead.some(seg => seg[0] === headSeg[0] && seg[1] === headSeg[1])) {
+                    gameActive = false; win = false; clearInterval(intervalId); intervalId = null; snake = newSnake; draw(); return;
                 }
-
                 snake = newSnake;
-
                 if (ateApple) {
                     score++;
                     updateScoreDisplay();
-
-                    const appleGenerated = generateApple();
-                    if (!appleGenerated) {
-                        gameActive = false;
-                        win = true;
-                        clearInterval(intervalId);
-                        intervalId = null;
-                        draw();
-                        return;
+                    if (!generateApple()) {
+                        gameActive = false; win = true; clearInterval(intervalId); intervalId = null; draw(); return;
                     }
                 }
-
                 draw();
             }
 
             function draw() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-
                 ctx.fillStyle = '#000000';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+                // 網格
                 ctx.strokeStyle = '#3f4d60';
                 ctx.lineWidth = 0.8;
                 for (let i = 0; i <= GRID_SIZE; i++) {
                     const pos = i * CELL_SIZE;
                     ctx.beginPath();
-                    ctx.strokeStyle = '#4e617a';
-                    ctx.lineWidth = 0.6;
-                    ctx.moveTo(pos, 0);
-                    ctx.lineTo(pos, canvas.height);
+                    ctx.moveTo(pos, 0); ctx.lineTo(pos, canvas.height);
                     ctx.stroke();
                     ctx.beginPath();
-                    ctx.moveTo(0, pos);
-                    ctx.lineTo(canvas.width, pos);
+                    ctx.moveTo(0, pos); ctx.lineTo(canvas.width, pos);
                     ctx.stroke();
                 }
-
+                // 蘋果
                 if (apple) {
-                    const ax = apple.x * CELL_SIZE;
-                    const ay = apple.y * CELL_SIZE;
-
+                    const ax = apple.x * CELL_SIZE, ay = apple.y * CELL_SIZE;
                     ctx.fillStyle = '#ff3a3a';
-                    ctx.shadowColor = '#ff8888';
                     ctx.shadowBlur = 15;
                     ctx.beginPath();
-                    ctx.ellipse(ax + 10, ay + 9, 7, 8, 0, 0, Math.PI * 2);
+                    ctx.ellipse(ax+10, ay+9, 7, 8, 0, 0, Math.PI*2);
                     ctx.fill();
-
-                    ctx.shadowBlur = 8;
                     ctx.fillStyle = '#ffffff';
                     ctx.beginPath();
-                    ctx.ellipse(ax + 7, ay + 5, 2, 2.5, 0, 0, Math.PI * 2);
+                    ctx.ellipse(ax+7, ay+5, 2, 2.5, 0, 0, Math.PI*2);
                     ctx.fill();
-
                     ctx.fillStyle = '#a0ff4a';
-                    ctx.shadowColor = '#b3ff99';
                     ctx.beginPath();
-                    ctx.ellipse(ax + 12, ay - 1, 4, 3, 0.3, 0, Math.PI * 2);
+                    ctx.ellipse(ax+12, ay-1, 4, 3, 0.3, 0, Math.PI*2);
                     ctx.fill();
-
                     ctx.shadowBlur = 0;
-                    ctx.shadowColor = 'transparent';
                 }
-
-                if (snake.length > 0) {
-                    for (let i = 0; i < snake.length; i++) {
-                        const [sx, sy] = snake[i];
-                        const x = sx * CELL_SIZE;
-                        const y = sy * CELL_SIZE;
-
-                        if (i === 0) {
-                            ctx.fillStyle = '#c4ffb2';
-                            ctx.shadowColor = '#b0ffb0';
-                            ctx.shadowBlur = 18;
-                        } else {
-                            ctx.fillStyle = '#6ef06e';
-                            ctx.shadowColor = '#8cff8c';
-                            ctx.shadowBlur = 12;
-                        }
-
-                        ctx.beginPath();
-                        ctx.roundRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4, 6);
-                        ctx.fill();
-
-                        ctx.shadowBlur = 0;
-                        ctx.shadowColor = 'transparent';
-
-                        if (i === 0) {
-                            ctx.fillStyle = '#ffffff';
-                            ctx.beginPath();
-                            ctx.arc(x + 6, y + 7, 3, 0, 2 * Math.PI);
-                            ctx.fill();
-                            ctx.beginPath();
-                            ctx.arc(x + 14, y + 7, 3, 0, 2 * Math.PI);
-                            ctx.fill();
-
-                            ctx.fillStyle = '#000000';
-                            ctx.beginPath();
-                            ctx.arc(x + 5, y + 6, 1.2, 0, 2 * Math.PI);
-                            ctx.fill();
-                            ctx.beginPath();
-                            ctx.arc(x + 13, y + 6, 1.2, 0, 2 * Math.PI);
-                            ctx.fill();
-
-                            ctx.fillStyle = '#ffffff';
-                            ctx.beginPath();
-                            ctx.arc(x + 4, y + 5, 0.6, 0, 2 * Math.PI);
-                            ctx.fill();
-                            ctx.beginPath();
-                            ctx.arc(x + 12, y + 5, 0.6, 0, 2 * Math.PI);
-                            ctx.fill();
-                        } else {
-                            ctx.fillStyle = '#e2ffe2';
-                            ctx.beginPath();
-                            ctx.arc(x + 6, y + 6, 2, 0, 2 * Math.PI);
-                            ctx.globalAlpha = 0.7;
-                            ctx.fill();
-                            ctx.beginPath();
-                            ctx.arc(x + 14, y + 14, 2, 0, 2 * Math.PI);
-                            ctx.fill();
-                            ctx.globalAlpha = 1.0;
-                        }
-                    }
-                    ctx.shadowBlur = 0;
-                    ctx.shadowColor = 'transparent';
-                    ctx.globalAlpha = 1.0;
-                }
-
-                if (!gameActive) {
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    ctx.font = 'bold 32px "Segoe UI", "微軟正黑體", "Noto Sans TC", sans-serif';
-                    ctx.fillStyle = win ? '#fadf8a' : '#ff8888';
-                    ctx.shadowColor = '#000';
-                    ctx.shadowBlur = 18;
-                    ctx.textAlign = 'center';
-                    if (win) {
-                        ctx.fillText('✨ 你贏了 ✨', canvas.width / 2, canvas.height / 2 - 25);
+                // 蛇
+                for (let i=0; i<snake.length; i++) {
+                    const [sx,sy] = snake[i];
+                    const x = sx*CELL_SIZE, y = sy*CELL_SIZE;
+                    if (i===0) {
+                        ctx.fillStyle = '#c4ffb2';
+                        ctx.shadowBlur = 18;
                     } else {
-                        ctx.fillText('💀 遊戲結束 💀', canvas.width / 2, canvas.height / 2 - 25);
+                        ctx.fillStyle = '#6ef06e';
+                        ctx.shadowBlur = 12;
                     }
-
-                    ctx.font = '22px "Segoe UI", "微軟正黑體", monospace';
-                    ctx.fillStyle = '#dddddd';
-                    ctx.fillText('空白鍵 重新開始', canvas.width / 2, canvas.height / 2 + 35);
-                    ctx.textAlign = 'left';
+                    ctx.beginPath();
+                    ctx.roundRect(x+2, y+2, CELL_SIZE-4, CELL_SIZE-4, 6);
+                    ctx.fill();
                     ctx.shadowBlur = 0;
+                    if (i===0) {
+                        ctx.fillStyle = '#fff';
+                        ctx.beginPath();
+                        ctx.arc(x+6, y+7, 3, 0, 2*Math.PI);
+                        ctx.fill();
+                        ctx.beginPath();
+                        ctx.arc(x+14, y+7, 3, 0, 2*Math.PI);
+                        ctx.fill();
+                        ctx.fillStyle = '#000';
+                        ctx.beginPath();
+                        ctx.arc(x+5, y+6, 1.2, 0, 2*Math.PI);
+                        ctx.fill();
+                        ctx.beginPath();
+                        ctx.arc(x+13, y+6, 1.2, 0, 2*Math.PI);
+                        ctx.fill();
+                        ctx.fillStyle = '#fff';
+                        ctx.beginPath();
+                        ctx.arc(x+4, y+5, 0.6, 0, 2*Math.PI);
+                        ctx.fill();
+                        ctx.beginPath();
+                        ctx.arc(x+12, y+5, 0.6, 0, 2*Math.PI);
+                        ctx.fill();
+                    } else {
+                        ctx.fillStyle = '#e2ffe2';
+                        ctx.beginPath();
+                        ctx.arc(x+6, y+6, 2, 0, 2*Math.PI);
+                        ctx.globalAlpha = 0.7;
+                        ctx.fill();
+                        ctx.beginPath();
+                        ctx.arc(x+14, y+14, 2, 0, 2*Math.PI);
+                        ctx.fill();
+                        ctx.globalAlpha = 1;
+                    }
                 }
+                // 結束畫面
+                if (!gameActive) {
+                    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                    ctx.fillRect(0,0,canvas.width,canvas.height);
+                    ctx.font = 'bold 32px "Segoe UI", "微軟正黑體"';
+                    ctx.fillStyle = win ? '#fadf8a' : '#ff8888';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(win ? '✨ 你贏了 ✨' : '💀 遊戲結束 💀', canvas.width/2, canvas.height/2-25);
+                    ctx.font = '22px sans-serif';
+                    ctx.fillStyle = '#ddd';
+                    ctx.fillText('空白鍵 重新開始', canvas.width/2, canvas.height/2+35);
+                    ctx.textAlign = 'left';
+                }
+            }
 
-                if (!CanvasRenderingContext2D.prototype.roundRect) {
-                    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-                        if (w < 2 * r) r = w / 2;
-                        if (h < 2 * r) r = h / 2;
-                        this.moveTo(x + r, y);
-                        this.lineTo(x + w - r, y);
-                        this.quadraticCurveTo(x + w, y, x + w, y + r);
-                        this.lineTo(x + w, y + h - r);
-                        this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-                        this.lineTo(x + r, y + h);
-                        this.quadraticCurveTo(x, y + h, x, y + h - r);
-                        this.lineTo(x, y + r);
-                        this.quadraticCurveTo(x, y, x + r, y);
-                        this.closePath();
-                        return this;
-                    };
-                }
+            if (!CanvasRenderingContext2D.prototype.roundRect) {
+                CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r) {
+                    if (w<2*r) r=w/2; if (h<2*r) r=h/2;
+                    this.moveTo(x+r,y);
+                    this.lineTo(x+w-r,y);
+                    this.quadraticCurveTo(x+w,y,x+w,y+r);
+                    this.lineTo(x+w,y+h-r);
+                    this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+                    this.lineTo(x+r,y+h);
+                    this.quadraticCurveTo(x,y+h,x,y+h-r);
+                    this.lineTo(x,y+r);
+                    this.quadraticCurveTo(x,y,x+r,y);
+                    this.closePath();
+                    return this;
+                };
             }
 
             difficultyBtns.forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    difficultyBtns.forEach(b => b.classList.remove('active'));
+                btn.addEventListener('click', function() {
+                    difficultyBtns.forEach(b=>b.classList.remove('active'));
                     this.classList.add('active');
-
-                    const level = this.dataset.level;
-                    currentDifficulty = level;
-                    currentInterval = speedMap[level];
-
-                    if (gameActive) {
-                        resetGame();
-                    } else {
-                        draw();
-                    }
+                    currentDifficulty = this.dataset.level;
+                    currentInterval = speedMap[currentDifficulty];
+                    if (gameActive) resetGame();
+                    else draw();
                 });
             });
 
-            function handleKeyDown(e) {
+            function handleKey(e) {
                 const key = e.key;
-                if (key.startsWith('Arrow') || key === ' ') {
-                    e.preventDefault();
-                }
-
-                if (key === ' ') {
-                    resetGame();
-                    return;
-                }
-
+                if (key.startsWith('Arrow') || key === ' ') e.preventDefault();
+                if (key === ' ') { resetGame(); return; }
                 if (!gameActive) return;
-
-                let newDir = null;
-                if (key === 'ArrowUp') newDir = [0, -1];
-                else if (key === 'ArrowDown') newDir = [0, 1];
-                else if (key === 'ArrowLeft') newDir = [-1, 0];
-                else if (key === 'ArrowRight') newDir = [1, 0];
-                else return;
-
-                nextDirection = newDir;
+                let nd = null;
+                if (key === 'ArrowUp') nd = [0,-1];
+                else if (key === 'ArrowDown') nd = [0,1];
+                else if (key === 'ArrowLeft') nd = [-1,0];
+                else if (key === 'ArrowRight') nd = [1,0];
+                if (nd) nextDirection = nd;
             }
+            window.addEventListener('keydown', handleKey);
+            window.addEventListener('keyup', e => { if (e.key.startsWith('Arrow')||e.key===' ') e.preventDefault(); });
 
-            window.addEventListener('keydown', handleKeyDown);
-            window.addEventListener('keyup', (e) => {
-                if (e.key.startsWith('Arrow') || e.key === ' ') e.preventDefault();
+            // 觸控方向按鈕
+            document.querySelectorAll('.dir-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (!gameActive) return;
+                    const dir = btn.dataset.dir;
+                    let nd = null;
+                    if (dir === 'up') nd = [0,-1];
+                    else if (dir === 'down') nd = [0,1];
+                    else if (dir === 'left') nd = [-1,0];
+                    else if (dir === 'right') nd = [1,0];
+                    if (nd) nextDirection = nd;
+                });
             });
 
-            canvas.setAttribute('tabindex', '0');
-            canvas.addEventListener('click', () => canvas.focus());
-
+            canvas.setAttribute('tabindex','0');
+            canvas.addEventListener('click',()=>canvas.focus());
             resetGame();
         })();
     </script>
