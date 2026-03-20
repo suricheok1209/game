@@ -69,6 +69,7 @@
             gap: 12px;
             justify-content: center;
             margin: 25px 0;
+            min-height: 300px;
         }
         .card {
             aspect-ratio: 1 / 1;
@@ -126,231 +127,447 @@
             color: #7a7a9e;
             font-size: 1.2rem;
         }
+        
+        /* Difficulty selector styles */
+        .difficulty-selector {
+            background: #2d2d44;
+            border-radius: 30px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 3px solid #ffb347;
+        }
+        
+        .difficulty-selector h3 {
+            margin: 0 0 20px 0;
+            color: #ffd966;
+            font-size: 2rem;
+        }
+        
+        .difficulty-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .difficulty-btn {
+            background: #3a3a5a;
+            border: none;
+            color: white;
+            font-size: 1.4rem;
+            padding: 12px 25px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 5px 0 #25253a;
+            font-weight: bold;
+        }
+        
+        .difficulty-btn:hover {
+            background: #4a4a6a;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 0 #25253a;
+        }
+        
+        .difficulty-btn.active {
+            background: #ffb347;
+            color: #1a1a2e;
+            box-shadow: 0 5px 0 #cc8f38;
+        }
+        
+        .difficulty-btn.active:hover {
+            background: #ffc266;
+            box-shadow: 0 8px 0 #cc8f38;
+        }
+        
+        .start-btn {
+            background: #4caf9e;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            padding: 15px 50px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #2a9d8f;
+            font-weight: bold;
+            transition: 0.2s;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .start-btn:hover {
+            background: #6ad4b3;
+            transform: translateY(-3px);
+            box-shadow: 0 11px 0 #2a9d8f;
+        }
+        
+        .game-area {
+            transition: opacity 0.3s;
+        }
+        
+        .change-difficulty-btn {
+            background: #5f7a9a;
+            border: none;
+            color: white;
+            font-size: 1.4rem;
+            padding: 10px 25px;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #4a5e7a;
+            font-weight: bold;
+            margin-left: 15px;
+            transition: 0.2s;
+        }
+        
+        .change-difficulty-btn:hover {
+            background: #7a95b5;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 0 #4a5e7a;
+        }
+        
+        .difficulty-display {
+            background: #3a3a5a;
+            padding: 6px 15px;
+            border-radius: 30px;
+            color: #ffd966;
+            font-weight: bold;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            background: #0f1420;
+            border-radius: 60px;
+            padding: 12px 25px;
+            margin: 15px 0 25px;
+            border: 2px solid #ffb347;
+            font-size: 1.4rem;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
         @media (max-width: 500px) {
             .card { font-size: 2rem; }
             .stats { font-size: 1rem; flex-direction: column; gap: 8px; align-items: center; }
+            .difficulty-buttons { flex-direction: column; align-items: center; }
+            .difficulty-btn { width: 90%; }
+            .reset-btn, .change-difficulty-btn { margin: 5px 0; width: 90%; }
         }
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-link" aria-label="返回遊戲主頁">⬅️ 返回主頁</a>
-    <div class="game-container" role="main" aria-labelledby="game-title">
-        <h2 id="game-title">🧠 記憶配對</h2>
-        <div class="stats" aria-live="polite" aria-atomic="false">
-            <span>✅ 已配對：<span class="pairs-matched" id="pairsCount" aria-label="已配對對數">0 / 8</span></span>
-            <span>🔢 步數：<span class="steps" id="stepsCount" aria-label="當前步數">0</span></span>
+    <a href="index.html" class="back-link">⬅️ 返回主頁</a>
+    <div class="game-container">
+        <h2>🧠 記憶配對</h2>
+        
+        <div class="difficulty-selector" id="difficultySelector">
+            <h3>選擇難度</h3>
+            <div class="difficulty-buttons">
+                <button class="difficulty-btn active" data-level="low">低難度 (4對)</button>
+                <button class="difficulty-btn" data-level="medium">中難度 (6對)</button>
+                <button class="difficulty-btn" data-level="high">高難度 (8對)</button>
+            </div>
+            <button class="start-btn" id="startGame">開始遊戲</button>
         </div>
-        <div class="grid" id="memoryGrid" role="grid" aria-label="記憶配對遊戲板" aria-describedby="game-instructions"></div>
-        <div class="message" id="winMessage" role="alert" aria-live="assertive"></div>
-        <button class="reset-btn" id="resetGame" aria-label="開始新一局遊戲">🔄 新一局</button>
-        <div class="footer-note" id="game-instructions">點擊卡片翻牌，配對所有表情符號</div>
+        
+        <div class="game-area" id="gameArea" style="display: none;">
+            <div class="stats">
+                <span>✅ 已配對：<span class="pairs-matched" id="pairsCount">0 / 8</span></span>
+                <span>🔢 步數：<span class="steps" id="stepsCount">0</span></span>
+                <span>📊 難度：<span class="difficulty-display" id="difficultyDisplay">高難度</span></span>
+            </div>
+            <div class="grid" id="memoryGrid"></div>
+            <div class="message" id="winMessage"></div>
+            <button class="reset-btn" id="resetGame">🔄 新一局</button>
+            <button class="change-difficulty-btn" id="changeDifficulty">更改難度</button>
+            <div class="footer-note">點擊卡片翻牌，配對所有表情符號</div>
+        </div>
     </div>
 
     <script>
         (function() {
-            const emojis = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼'];
+            const allEmojis = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔'];
             
+            // Difficulty configurations
+            const difficulties = {
+                low: {
+                    pairs: 4,
+                    cols: 4,
+                    rows: 2,
+                    name: '低難度',
+                    emojiCount: 4
+                },
+                medium: {
+                    pairs: 6,
+                    cols: 4,
+                    rows: 3,
+                    name: '中難度',
+                    emojiCount: 6
+                },
+                high: {
+                    pairs: 8,
+                    cols: 4,
+                    rows: 4,
+                    name: '高難度',
+                    emojiCount: 8
+                }
+            };
+            
+            let currentDifficulty = 'high';
             let cards = [];
             let flippedIndexes = [];
             let matchedPairs = 0;
             let steps = 0;
             let lockBoard = false;
             let timeoutHandle = null;
-            let bestSteps = null;
-            let cardElements = [];
-
-            // 安全地讀取最佳紀錄
-            try {
-                const stored = localStorage.getItem('memoryBest');
-                if (stored) {
-                    const parsed = parseInt(stored, 10);
-                    if (!isNaN(parsed) && parsed >= 0) {
-                        bestSteps = parsed;
-                    }
-                }
-            } catch (e) {
-                console.warn('無法讀取localStorage:', e);
-            }
-
+            let bestSteps = {};
+            
+            // DOM elements
             const gridElement = document.getElementById('memoryGrid');
             const pairsSpan = document.getElementById('pairsCount');
             const stepsSpan = document.getElementById('stepsCount');
             const winMessageDiv = document.getElementById('winMessage');
-
-            function updateStats() {
-                pairsSpan.textContent = `${matchedPairs} / 8`;
-                pairsSpan.setAttribute('aria-label', `已配對${matchedPairs}對，共8對`);
-                stepsSpan.textContent = steps;
-                stepsSpan.setAttribute('aria-label', `當前步數：${steps}`);
-            }
-
-            function checkWin() {
-                if (matchedPairs === 8) {
-                    let msg = `🎉 恭喜完成！ 步數：${steps}`;
-                    let ariaMsg = `恭喜完成遊戲，步數：${steps}`;
-                    
-                    if (bestSteps === null || steps < bestSteps) {
-                        bestSteps = steps;
-                        try {
-                            localStorage.setItem('memoryBest', bestSteps.toString());
-                        } catch (e) {
-                            console.warn('無法保存到localStorage:', e);
-                        }
-                        msg += ` 🏆 新紀錄！最佳步數 ${bestSteps}`;
-                        ariaMsg += `，新紀錄！最佳步數${bestSteps}`;
-                    } else {
-                        msg += `  最佳紀錄：${bestSteps} 步`;
-                        ariaMsg += `，最佳紀錄：${bestSteps}步`;
-                    }
-                    winMessageDiv.textContent = msg;
-                    winMessageDiv.setAttribute('aria-label', ariaMsg);
+            const difficultyDisplay = document.getElementById('difficultyDisplay');
+            const difficultySelector = document.getElementById('difficultySelector');
+            const gameArea = document.getElementById('gameArea');
+            const startGameBtn = document.getElementById('startGame');
+            const changeDifficultyBtn = document.getElementById('changeDifficulty');
+            const resetGameBtn = document.getElementById('resetGame');
+            const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+            
+            // Load best scores from localStorage
+            function loadBestScores() {
+                const saved = localStorage.getItem('memoryBestScores');
+                if (saved) {
+                    bestSteps = JSON.parse(saved);
                 } else {
-                    winMessageDiv.textContent = '';
-                    winMessageDiv.removeAttribute('aria-label');
+                    bestSteps = { low: null, medium: null, high: null };
                 }
             }
-
+            
+            // Save best scores to localStorage
+            function saveBestScores() {
+                localStorage.setItem('memoryBestScores', JSON.stringify(bestSteps));
+            }
+            
+            function updateStats() {
+                const config = difficulties[currentDifficulty];
+                pairsSpan.textContent = `${matchedPairs} / ${config.pairs}`;
+                stepsSpan.textContent = steps;
+                difficultyDisplay.textContent = config.name;
+            }
+            
+            function showCongratulationPopup() {
+                const config = difficulties[currentDifficulty];
+                const best = bestSteps[currentDifficulty];
+                let message = `🎉 恭喜完成 ${config.name}！\n\n`;
+                message += `步數：${steps}\n`;
+                message += `配對對數：${config.pairs} 對\n\n`;
+                
+                if (best === null || steps < best) {
+                    bestSteps[currentDifficulty] = steps;
+                    saveBestScores();
+                    message += `🏆 新紀錄！最佳步數：${steps}`;
+                } else {
+                    message += `最佳紀錄：${best} 步`;
+                }
+                
+                // Create modal popup
+                const modal = document.createElement('div');
+                modal.className = 'congratulation-modal';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <h3>🎊 恭喜！ 🎊</h3>
+                        <div class="modal-message">${message.replace(/\n/g, '<br>')}</div>
+                        <div class="modal-buttons">
+                            <button class="modal-btn continue-btn">繼續遊戲</button>
+                            <button class="modal-btn new-game-btn">新一局</button>
+                            <button class="modal-btn change-diff-btn">更改難度</button>
+                        </div>
+                    </div>
+                `;
+                
+                // Add modal styles
+                const style = document.createElement('style');
+                style.textContent = `
+                    .congratulation-modal {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.85);
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        z-index: 1000;
+                        animation: fadeIn 0.3s;
+                    }
+                    @keyframes fadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+                    .modal-content {
+                        background: linear-gradient(145deg, #2a2a44, #1a1a2e);
+                        border-radius: 30px;
+                        padding: 40px;
+                        max-width: 500px;
+                        width: 90%;
+                        border: 4px solid #ffb347;
+                        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+                        text-align: center;
+                    }
+                    .modal-content h3 {
+                        color: #ffd966;
+                        font-size: 2.5rem;
+                        margin: 0 0 25px 0;
+                    }
+                    .modal-message {
+                        color: #b8d0ff;
+                        font-size: 1.8rem;
+                        line-height: 1.6;
+                        margin-bottom: 30px;
+                        background: rgba(255, 255, 255, 0.05);
+                        padding: 20px;
+                        border-radius: 20px;
+                    }
+                    .modal-buttons {
+                        display: flex;
+                        justify-content: center;
+                        gap: 15px;
+                        flex-wrap: wrap;
+                    }
+                    .modal-btn {
+                        background: #4caf9e;
+                        border: none;
+                        color: white;
+                        font-size: 1.4rem;
+                        padding: 12px 25px;
+                        border-radius: 40px;
+                        cursor: pointer;
+                        box-shadow: 0 5px 0 #2a9d8f;
+                        font-weight: bold;
+                        transition: 0.2s;
+                    }
+                    .modal-btn:hover {
+                        transform: translateY(-3px);
+                        box-shadow: 0 8px 0 #2a9d8f;
+                    }
+                    .continue-btn { background: #5f7a9a; box-shadow: 0 5px 0 #4a5e7a; }
+                    .continue-btn:hover { box-shadow: 0 8px 0 #4a5e7a; }
+                    .new-game-btn { background: #ffb347; box-shadow: 0 5px 0 #cc8f38; }
+                    .new-game-btn:hover { box-shadow: 0 8px 0 #cc8f38; }
+                    .change-diff-btn { background: #9b5de5; box-shadow: 0 5px 0 #7a46b5; }
+                    .change-diff-btn:hover { box-shadow: 0 8px 0 #7a46b5; }
+                `;
+                
+                document.head.appendChild(style);
+                document.body.appendChild(modal);
+                
+                // Add event listeners to modal buttons
+                modal.querySelector('.continue-btn').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                });
+                
+                modal.querySelector('.new-game-btn').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                    resetGame();
+                });
+                
+                modal.querySelector('.change-diff-btn').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                    showDifficultySelector();
+                });
+            }
+            
+            function checkWin() {
+                const config = difficulties[currentDifficulty];
+                if (matchedPairs === config.pairs) {
+                    setTimeout(showCongratulationPopup, 500);
+                }
+            }
+            
             function initCards() {
-                let deck = [...emojis, ...emojis];
-                // Fisher-Yates shuffle
+                const config = difficulties[currentDifficulty];
+                const selectedEmojis = allEmojis.slice(0, config.emojiCount);
+                let deck = [...selectedEmojis, ...selectedEmojis];
+                
+                // Shuffle
                 for (let i = deck.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [deck[i], deck[j]] = [deck[j], deck[i]];
                 }
+                
                 cards = deck.map((emoji, index) => ({
                     id: index,
                     emoji: emoji,
                     matched: false,
                     flipped: false
                 }));
+                
                 flippedIndexes = [];
                 matchedPairs = 0;
                 steps = 0;
                 lockBoard = false;
-                if (timeoutHandle) {
-                    clearTimeout(timeoutHandle);
-                    timeoutHandle = null;
-                }
+                if (timeoutHandle) clearTimeout(timeoutHandle);
                 updateStats();
                 winMessageDiv.textContent = '';
-                winMessageDiv.removeAttribute('aria-label');
-                cardElements = [];
-            }
-
-            function createCardElement(card, index) {
-                const cardDiv = document.createElement('button');
-                cardDiv.className = 'card';
-                cardDiv.setAttribute('type', 'button');
-                cardDiv.setAttribute('aria-label', `卡片${index + 1}，未翻開`);
-                cardDiv.dataset.index = index;
                 
-                if (card.matched) {
-                    cardDiv.classList.add('matched');
-                    cardDiv.textContent = card.emoji;
-                    cardDiv.setAttribute('aria-label', `卡片${index + 1}，已配對，圖案：${card.emoji}`);
-                    cardDiv.disabled = true;
-                } else if (card.flipped) {
-                    cardDiv.classList.add('flipped');
-                    cardDiv.textContent = card.emoji;
-                    cardDiv.setAttribute('aria-label', `卡片${index + 1}，已翻開，圖案：${card.emoji}`);
-                } else {
-                    cardDiv.textContent = '?';
-                    cardDiv.setAttribute('aria-label', `卡片${index + 1}，未翻開`);
-                }
-                
-                return cardDiv;
+                // Update grid CSS
+                gridElement.style.gridTemplateColumns = `repeat(${config.cols}, 1fr)`;
+                gridElement.style.gridTemplateRows = `repeat(${config.rows}, 1fr)`;
             }
-
-            function updateCardElement(cardElement, card, index) {
-                // 移除所有狀態類別
-                cardElement.classList.remove('flipped', 'matched');
-                
-                if (card.matched) {
-                    cardElement.classList.add('matched');
-                    cardElement.textContent = card.emoji;
-                    cardElement.setAttribute('aria-label', `卡片${index + 1}，已配對，圖案：${card.emoji}`);
-                    cardElement.disabled = true;
-                } else if (card.flipped) {
-                    cardElement.classList.add('flipped');
-                    cardElement.textContent = card.emoji;
-                    cardElement.setAttribute('aria-label', `卡片${index + 1}，已翻開，圖案：${card.emoji}`);
-                    cardElement.disabled = false;
-                } else {
-                    cardElement.textContent = '?';
-                    cardElement.setAttribute('aria-label', `卡片${index + 1}，未翻開`);
-                    cardElement.disabled = false;
-                }
+            
+            function renderBoard() {
+                gridElement.innerHTML = '';
+                cards.forEach((card, index) => {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = 'card';
+                    if (card.matched) {
+                        cardDiv.classList.add('matched');
+                        cardDiv.textContent = card.emoji;
+                    } else if (card.flipped) {
+                        cardDiv.classList.add('flipped');
+                        cardDiv.textContent = card.emoji;
+                    } else {
+                        cardDiv.textContent = '?';
+                    }
+                    cardDiv.dataset.index = index;
+                    cardDiv.addEventListener('click', () => onCardClick(index));
+                    gridElement.appendChild(cardDiv);
+                });
             }
-
-            function renderBoard(forceRender = false) {
-                if (forceRender || cardElements.length === 0) {
-                    // 初次渲染或強制重新渲染
-                    gridElement.innerHTML = '';
-                    cardElements = [];
-                    
-                    cards.forEach((card, index) => {
-                        const cardElement = createCardElement(card, index);
-                        cardElement.addEventListener('click', () => onCardClick(index));
-                        gridElement.appendChild(cardElement);
-                        cardElements[index] = cardElement;
-                    });
-                } else {
-                    // 只更新改變的卡片
-                    flippedIndexes.forEach(index => {
-                        if (cardElements[index]) {
-                            updateCardElement(cardElements[index], cards[index], index);
-                        }
-                    });
-                    
-                    // 如果配對了，更新配對的卡片
-                    cards.forEach((card, index) => {
-                        if (card.matched && cardElements[index]) {
-                            updateCardElement(cardElements[index], card, index);
-                        }
-                    });
-                }
-            }
-
+            
             function onCardClick(index) {
                 if (lockBoard) return;
                 if (cards[index].matched) return;
                 if (cards[index].flipped) return;
                 if (flippedIndexes.length === 2) return;
-
+                
                 cards[index].flipped = true;
                 flippedIndexes.push(index);
+                renderBoard();
                 
-                // 只更新被點擊的卡片
-                if (cardElements[index]) {
-                    updateCardElement(cardElements[index], cards[index], index);
-                }
-
                 if (flippedIndexes.length === 2) {
                     steps++;
                     updateStats();
                     checkMatch();
                 }
             }
-
+            
             function checkMatch() {
                 const [idx1, idx2] = flippedIndexes;
                 const card1 = cards[idx1];
                 const card2 = cards[idx2];
-
+                
                 if (card1.emoji === card2.emoji) {
                     card1.matched = true;
                     card2.matched = true;
                     matchedPairs++;
                     updateStats();
                     flippedIndexes = [];
-                    
-                    // 更新配對的卡片
-                    [idx1, idx2].forEach(idx => {
-                        if (cardElements[idx]) {
-                            updateCardElement(cardElements[idx], cards[idx], idx);
-                        }
-                    });
-                    
+                    renderBoard();
                     checkWin();
                 } else {
                     lockBoard = true;
@@ -359,43 +576,57 @@
                         card2.flipped = false;
                         flippedIndexes = [];
                         lockBoard = false;
-                        
-                        // 更新翻回的卡片
-                        [idx1, idx2].forEach(idx => {
-                            if (cardElements[idx]) {
-                                updateCardElement(cardElements[idx], cards[idx], idx);
-                            }
-                        });
-                        
+                        renderBoard();
                         timeoutHandle = null;
                     }, 800);
+                    renderBoard();
                 }
             }
-
+            
             function resetGame() {
                 if (timeoutHandle) {
                     clearTimeout(timeoutHandle);
                     timeoutHandle = null;
                 }
                 initCards();
-                renderBoard(true);
+                renderBoard();
             }
-
-            // 添加鍵盤導航支援
-            function handleKeyDown(e) {
-                if (e.key === 'Escape') {
-                    resetGame();
-                } else if (e.key === ' ' || e.key === 'Spacebar') {
-                    e.preventDefault();
-                    resetGame();
-                }
+            
+            function showDifficultySelector() {
+                gameArea.style.display = 'none';
+                difficultySelector.style.display = 'block';
             }
-
-            document.addEventListener('keydown', handleKeyDown);
-            document.getElementById('resetGame').addEventListener('click', resetGame);
-
-            initCards();
-            renderBoard(true);
+            
+            function startGame() {
+                difficultySelector.style.display = 'none';
+                gameArea.style.display = 'block';
+                initCards();
+                renderBoard();
+            }
+            
+            function changeDifficulty() {
+                showDifficultySelector();
+            }
+            
+            // Initialize
+            loadBestScores();
+            
+            // Set up difficulty button events
+            difficultyButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    difficultyButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentDifficulty = btn.dataset.level;
+                });
+            });
+            
+            // Set up button events
+            startGameBtn.addEventListener('click', startGame);
+            changeDifficultyBtn.addEventListener('click', changeDifficulty);
+            resetGameBtn.addEventListener('click', resetGame);
+            
+            // Initialize with high difficulty selected
+            document.querySelector('.difficulty-btn[data-level="high"]').classList.add('active');
         })();
     </script>
 </body>
