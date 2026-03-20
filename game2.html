@@ -50,8 +50,10 @@
             margin: 15px 0 25px;
             border: 2px solid #ffb347;
             font-size: 1.4rem;
+            flex-wrap: wrap;
+            gap: 10px;
         }
-        .pairs-matched, .steps {
+        .pairs-matched, .steps, .difficulty-display {
             background: #2a2a44;
             padding: 6px 20px;
             border-radius: 40px;
@@ -65,7 +67,6 @@
         }
         .grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
             gap: 12px;
             justify-content: center;
             margin: 25px 0;
@@ -104,31 +105,36 @@
             transform: translateY(5px);
             box-shadow: 0 3px 0 #151e2a;
         }
-        .reset-btn {
+        .reset-btn, .change-difficulty-btn {
             background: #7a5d3c;
             border: none;
             color: white;
-            font-size: 2rem;
-            padding: 15px 40px;
+            font-size: 1.6rem;
+            padding: 12px 30px;
             border-radius: 60px;
             cursor: pointer;
-            box-shadow: 0 8px 0 #4d3b25;
+            box-shadow: 0 6px 0 #4d3b25;
             font-weight: bold;
             transition: 0.2s;
-            margin-top: 15px;
+            margin: 5px;
         }
-        .reset-btn:hover {
+        .reset-btn:hover, .change-difficulty-btn:hover {
             background: #9b784f;
             transform: translateY(-3px);
-            box-shadow: 0 11px 0 #4d3b25;
+            box-shadow: 0 9px 0 #4d3b25;
+        }
+        .change-difficulty-btn {
+            background: #5f7a9a;
+            box-shadow: 0 6px 0 #4a5e7a;
+        }
+        .change-difficulty-btn:hover {
+            background: #7a95b5;
         }
         .footer-note {
             margin-top: 20px;
             color: #7a7a9e;
             font-size: 1.2rem;
         }
-        
-        /* Difficulty selector styles */
         .difficulty-selector {
             background: #2d2d44;
             border-radius: 30px;
@@ -136,13 +142,11 @@
             margin: 20px 0;
             border: 3px solid #ffb347;
         }
-        
         .difficulty-selector h3 {
             margin: 0 0 20px 0;
             color: #ffd966;
             font-size: 2rem;
         }
-        
         .difficulty-buttons {
             display: flex;
             justify-content: center;
@@ -150,7 +154,6 @@
             margin-bottom: 25px;
             flex-wrap: wrap;
         }
-        
         .difficulty-btn {
             background: #3a3a5a;
             border: none;
@@ -162,25 +165,27 @@
             transition: 0.2s;
             box-shadow: 0 5px 0 #25253a;
             font-weight: bold;
+            position: relative;
         }
-        
         .difficulty-btn:hover {
             background: #4a4a6a;
             transform: translateY(-3px);
             box-shadow: 0 8px 0 #25253a;
         }
-        
         .difficulty-btn.active {
             background: #ffb347;
             color: #1a1a2e;
             box-shadow: 0 5px 0 #cc8f38;
         }
-        
-        .difficulty-btn.active:hover {
-            background: #ffc266;
-            box-shadow: 0 8px 0 #cc8f38;
+        .difficulty-btn .best-badge {
+            font-size: 0.8rem;
+            display: block;
+            margin-top: 5px;
+            color: #b8d0ff;
         }
-        
+        .difficulty-btn.active .best-badge {
+            color: #1a1a2e;
+        }
         .start-btn {
             background: #4caf9e;
             border: none;
@@ -195,64 +200,92 @@
             display: block;
             margin: 0 auto;
         }
-        
         .start-btn:hover {
             background: #6ad4b3;
             transform: translateY(-3px);
             box-shadow: 0 11px 0 #2a9d8f;
         }
-        
         .game-area {
             transition: opacity 0.3s;
         }
-        
-        .change-difficulty-btn {
-            background: #5f7a9a;
-            border: none;
-            color: white;
-            font-size: 1.4rem;
-            padding: 10px 25px;
-            border-radius: 40px;
-            cursor: pointer;
-            box-shadow: 0 5px 0 #4a5e7a;
-            font-weight: bold;
-            margin-left: 15px;
-            transition: 0.2s;
-        }
-        
-        .change-difficulty-btn:hover {
-            background: #7a95b5;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 0 #4a5e7a;
-        }
-        
-        .difficulty-display {
-            background: #3a3a5a;
-            padding: 6px 15px;
-            border-radius: 30px;
-            color: #ffd966;
-            font-weight: bold;
-        }
-        
-        .stats {
-            display: flex;
-            justify-content: space-between;
-            background: #0f1420;
-            border-radius: 60px;
-            padding: 12px 25px;
-            margin: 15px 0 25px;
-            border: 2px solid #ffb347;
-            font-size: 1.4rem;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
         @media (max-width: 500px) {
             .card { font-size: 2rem; }
-            .stats { font-size: 1rem; flex-direction: column; gap: 8px; align-items: center; }
+            .stats { font-size: 1rem; flex-direction: column; align-items: center; }
             .difficulty-buttons { flex-direction: column; align-items: center; }
             .difficulty-btn { width: 90%; }
             .reset-btn, .change-difficulty-btn { margin: 5px 0; width: 90%; }
+        }
+        /* 彈窗樣式 */
+        .congratulation-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .modal-content {
+            background: linear-gradient(145deg, #2a2a44, #1a1a2e);
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            border: 4px solid #ffb347;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        .modal-content h3 {
+            color: #ffd966;
+            font-size: 2.5rem;
+            margin: 0 0 25px 0;
+        }
+        .modal-message {
+            color: #b8d0ff;
+            font-size: 1.8rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 20px;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .modal-btn {
+            background: #4caf9e;
+            border: none;
+            color: white;
+            font-size: 1.4rem;
+            padding: 12px 25px;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #2a9d8f;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .modal-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 0 #2a9d8f;
+        }
+        .modal-btn.new-game {
+            background: #ffb347;
+            box-shadow: 0 5px 0 #cc8f38;
+        }
+        .modal-btn.change-diff {
+            background: #9b5de5;
+            box-shadow: 0 5px 0 #7a46b5;
         }
     </style>
 </head>
@@ -263,11 +296,7 @@
         
         <div class="difficulty-selector" id="difficultySelector">
             <h3>選擇難度</h3>
-            <div class="difficulty-buttons">
-                <button class="difficulty-btn active" data-level="low">低難度 (4對)</button>
-                <button class="difficulty-btn" data-level="medium">中難度 (6對)</button>
-                <button class="difficulty-btn" data-level="high">高難度 (8對)</button>
-            </div>
+            <div class="difficulty-buttons" id="difficultyButtons"></div>
             <button class="start-btn" id="startGame">開始遊戲</button>
         </div>
         
@@ -289,29 +318,10 @@
         (function() {
             const allEmojis = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔'];
             
-            // Difficulty configurations
             const difficulties = {
-                low: {
-                    pairs: 4,
-                    cols: 4,
-                    rows: 2,
-                    name: '低難度',
-                    emojiCount: 4
-                },
-                medium: {
-                    pairs: 6,
-                    cols: 4,
-                    rows: 3,
-                    name: '中難度',
-                    emojiCount: 6
-                },
-                high: {
-                    pairs: 8,
-                    cols: 4,
-                    rows: 4,
-                    name: '高難度',
-                    emojiCount: 8
-                }
+                low: { pairs: 4, cols: 4, rows: 2, name: '低難度', emojiCount: 4 },
+                medium: { pairs: 6, cols: 4, rows: 3, name: '中難度', emojiCount: 6 },
+                high: { pairs: 8, cols: 4, rows: 4, name: '高難度', emojiCount: 8 }
             };
             
             let currentDifficulty = 'high';
@@ -321,7 +331,7 @@
             let steps = 0;
             let lockBoard = false;
             let timeoutHandle = null;
-            let bestSteps = {};
+            let bestSteps = { low: null, medium: null, high: null };
             
             // DOM elements
             const gridElement = document.getElementById('memoryGrid');
@@ -334,9 +344,9 @@
             const startGameBtn = document.getElementById('startGame');
             const changeDifficultyBtn = document.getElementById('changeDifficulty');
             const resetGameBtn = document.getElementById('resetGame');
-            const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+            const difficultyButtonsContainer = document.getElementById('difficultyButtons');
             
-            // Load best scores from localStorage
+            // Load best scores
             function loadBestScores() {
                 const saved = localStorage.getItem('memoryBestScores');
                 if (saved) {
@@ -345,10 +355,25 @@
                     bestSteps = { low: null, medium: null, high: null };
                 }
             }
-            
-            // Save best scores to localStorage
             function saveBestScores() {
                 localStorage.setItem('memoryBestScores', JSON.stringify(bestSteps));
+            }
+            
+            // 動態產生難度按鈕並顯示最佳紀錄
+            function renderDifficultyButtons() {
+                difficultyButtonsContainer.innerHTML = '';
+                for (const [level, config] of Object.entries(difficulties)) {
+                    const btn = document.createElement('button');
+                    btn.className = `difficulty-btn ${level === currentDifficulty ? 'active' : ''}`;
+                    btn.dataset.level = level;
+                    btn.innerHTML = `${config.name} (${config.pairs}對)<span class="best-badge">${bestSteps[level] !== null ? `🏆 ${bestSteps[level]}步` : '✨ 無紀錄'}</span>`;
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        currentDifficulty = level;
+                    });
+                    difficultyButtonsContainer.appendChild(btn);
+                }
             }
             
             function updateStats() {
@@ -361,19 +386,17 @@
             function showCongratulationPopup() {
                 const config = difficulties[currentDifficulty];
                 const best = bestSteps[currentDifficulty];
-                let message = `🎉 恭喜完成 ${config.name}！\n\n`;
-                message += `步數：${steps}\n`;
-                message += `配對對數：${config.pairs} 對\n\n`;
-                
+                let message = `🎉 恭喜完成 ${config.name}！\n\n步數：${steps}\n配對對數：${config.pairs} 對\n\n`;
                 if (best === null || steps < best) {
                     bestSteps[currentDifficulty] = steps;
                     saveBestScores();
                     message += `🏆 新紀錄！最佳步數：${steps}`;
+                    // 更新難度選擇器中的最佳紀錄顯示
+                    renderDifficultyButtons();
                 } else {
                     message += `最佳紀錄：${best} 步`;
                 }
                 
-                // Create modal popup
                 const modal = document.createElement('div');
                 modal.className = 'congratulation-modal';
                 modal.innerHTML = `
@@ -381,110 +404,28 @@
                         <h3>🎊 恭喜！ 🎊</h3>
                         <div class="modal-message">${message.replace(/\n/g, '<br>')}</div>
                         <div class="modal-buttons">
-                            <button class="modal-btn continue-btn">繼續遊戲</button>
-                            <button class="modal-btn new-game-btn">新一局</button>
-                            <button class="modal-btn change-diff-btn">更改難度</button>
+                            <button class="modal-btn new-game">新一局</button>
+                            <button class="modal-btn change-diff">更改難度</button>
                         </div>
                     </div>
                 `;
                 
-                // Add modal styles
-                const style = document.createElement('style');
-                style.textContent = `
-                    .congratulation-modal {
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        background: rgba(0, 0, 0, 0.85);
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        z-index: 1000;
-                        animation: fadeIn 0.3s;
-                    }
-                    @keyframes fadeIn {
-                        from { opacity: 0; }
-                        to { opacity: 1; }
-                    }
-                    .modal-content {
-                        background: linear-gradient(145deg, #2a2a44, #1a1a2e);
-                        border-radius: 30px;
-                        padding: 40px;
-                        max-width: 500px;
-                        width: 90%;
-                        border: 4px solid #ffb347;
-                        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-                        text-align: center;
-                    }
-                    .modal-content h3 {
-                        color: #ffd966;
-                        font-size: 2.5rem;
-                        margin: 0 0 25px 0;
-                    }
-                    .modal-message {
-                        color: #b8d0ff;
-                        font-size: 1.8rem;
-                        line-height: 1.6;
-                        margin-bottom: 30px;
-                        background: rgba(255, 255, 255, 0.05);
-                        padding: 20px;
-                        border-radius: 20px;
-                    }
-                    .modal-buttons {
-                        display: flex;
-                        justify-content: center;
-                        gap: 15px;
-                        flex-wrap: wrap;
-                    }
-                    .modal-btn {
-                        background: #4caf9e;
-                        border: none;
-                        color: white;
-                        font-size: 1.4rem;
-                        padding: 12px 25px;
-                        border-radius: 40px;
-                        cursor: pointer;
-                        box-shadow: 0 5px 0 #2a9d8f;
-                        font-weight: bold;
-                        transition: 0.2s;
-                    }
-                    .modal-btn:hover {
-                        transform: translateY(-3px);
-                        box-shadow: 0 8px 0 #2a9d8f;
-                    }
-                    .continue-btn { background: #5f7a9a; box-shadow: 0 5px 0 #4a5e7a; }
-                    .continue-btn:hover { box-shadow: 0 8px 0 #4a5e7a; }
-                    .new-game-btn { background: #ffb347; box-shadow: 0 5px 0 #cc8f38; }
-                    .new-game-btn:hover { box-shadow: 0 8px 0 #cc8f38; }
-                    .change-diff-btn { background: #9b5de5; box-shadow: 0 5px 0 #7a46b5; }
-                    .change-diff-btn:hover { box-shadow: 0 8px 0 #7a46b5; }
-                `;
-                
-                document.head.appendChild(style);
-                document.body.appendChild(modal);
-                
-                // Add event listeners to modal buttons
-                modal.querySelector('.continue-btn').addEventListener('click', () => {
-                    document.body.removeChild(modal);
-                });
-                
-                modal.querySelector('.new-game-btn').addEventListener('click', () => {
-                    document.body.removeChild(modal);
+                modal.querySelector('.new-game').addEventListener('click', () => {
+                    modal.remove();
                     resetGame();
                 });
-                
-                modal.querySelector('.change-diff-btn').addEventListener('click', () => {
-                    document.body.removeChild(modal);
+                modal.querySelector('.change-diff').addEventListener('click', () => {
+                    modal.remove();
                     showDifficultySelector();
                 });
+                
+                document.body.appendChild(modal);
             }
             
             function checkWin() {
                 const config = difficulties[currentDifficulty];
                 if (matchedPairs === config.pairs) {
-                    setTimeout(showCongratulationPopup, 500);
+                    setTimeout(showCongratulationPopup, 300);
                 }
             }
             
@@ -492,20 +433,16 @@
                 const config = difficulties[currentDifficulty];
                 const selectedEmojis = allEmojis.slice(0, config.emojiCount);
                 let deck = [...selectedEmojis, ...selectedEmojis];
-                
-                // Shuffle
                 for (let i = deck.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [deck[i], deck[j]] = [deck[j], deck[i]];
                 }
-                
                 cards = deck.map((emoji, index) => ({
                     id: index,
                     emoji: emoji,
                     matched: false,
                     flipped: false
                 }));
-                
                 flippedIndexes = [];
                 matchedPairs = 0;
                 steps = 0;
@@ -513,8 +450,6 @@
                 if (timeoutHandle) clearTimeout(timeoutHandle);
                 updateStats();
                 winMessageDiv.textContent = '';
-                
-                // Update grid CSS
                 gridElement.style.gridTemplateColumns = `repeat(${config.cols}, 1fr)`;
                 gridElement.style.gridTemplateRows = `repeat(${config.rows}, 1fr)`;
             }
@@ -593,8 +528,11 @@
             }
             
             function showDifficultySelector() {
+                if (timeoutHandle) clearTimeout(timeoutHandle);
+                lockBoard = false;
                 gameArea.style.display = 'none';
                 difficultySelector.style.display = 'block';
+                renderDifficultyButtons(); // 確保顯示最新最佳紀錄
             }
             
             function startGame() {
@@ -608,25 +546,17 @@
                 showDifficultySelector();
             }
             
-            // Initialize
+            // 初始化
             loadBestScores();
+            renderDifficultyButtons();
             
-            // Set up difficulty button events
-            difficultyButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    difficultyButtons.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    currentDifficulty = btn.dataset.level;
-                });
-            });
-            
-            // Set up button events
+            // 事件綁定
             startGameBtn.addEventListener('click', startGame);
             changeDifficultyBtn.addEventListener('click', changeDifficulty);
             resetGameBtn.addEventListener('click', resetGame);
             
-            // Initialize with high difficulty selected
-            document.querySelector('.difficulty-btn[data-level="high"]').classList.add('active');
+            // 預設高難度選中
+            currentDifficulty = 'high';
         })();
     </script>
 </body>
