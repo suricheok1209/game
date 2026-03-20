@@ -133,17 +133,17 @@
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-link">⬅️ 返回主頁</a>
-    <div class="game-container">
-        <h2>🧠 記憶配對</h2>
-        <div class="stats">
-            <span>✅ 已配對：<span class="pairs-matched" id="pairsCount">0 / 8</span></span>
-            <span>🔢 步數：<span class="steps" id="stepsCount">0</span></span>
+    <a href="index.html" class="back-link" aria-label="返回遊戲主頁">⬅️ 返回主頁</a>
+    <div class="game-container" role="main" aria-labelledby="game-title">
+        <h2 id="game-title">🧠 記憶配對</h2>
+        <div class="stats" aria-live="polite" aria-atomic="false">
+            <span>✅ 已配對：<span class="pairs-matched" id="pairsCount" aria-label="已配對對數">0 / 8</span></span>
+            <span>🔢 步數：<span class="steps" id="stepsCount" aria-label="當前步數">0</span></span>
         </div>
-        <div class="grid" id="memoryGrid"></div>
-        <div class="message" id="winMessage"></div>
-        <button class="reset-btn" id="resetGame">🔄 新一局</button>
-        <div class="footer-note">點擊卡片翻牌，配對所有表情符號</div>
+        <div class="grid" id="memoryGrid" role="grid" aria-label="記憶配對遊戲板" aria-describedby="game-instructions"></div>
+        <div class="message" id="winMessage" role="alert" aria-live="assertive"></div>
+        <button class="reset-btn" id="resetGame" aria-label="開始新一局遊戲">🔄 新一局</button>
+        <div class="footer-note" id="game-instructions">點擊卡片翻牌，配對所有表情符號</div>
     </div>
 
     <script>
@@ -153,10 +153,24 @@
             let cards = [];
             let flippedIndexes = [];
             let matchedPairs = 0;
-            let steps = 0;               // 每成功配對一組算一步（實際上是每兩張牌翻開檢查算一步）
+            let steps = 0;
             let lockBoard = false;
             let timeoutHandle = null;
-            let bestSteps = localStorage.getItem('memoryBest') ? parseInt(localStorage.getItem('memoryBest')) : null;
+            let bestSteps = null;
+            let cardElements = [];
+
+            // 安全地讀取最佳紀錄
+            try {
+                const stored = localStorage.getItem('memoryBest');
+                if (stored) {
+                    const parsed = parseInt(stored, 10);
+                    if (!isNaN(parsed) && parsed >= 0) {
+                        bestSteps = parsed;
+                    }
+                }
+            } catch (e) {
+                console.warn('無法讀取localStorage:', e);
+            }
 
             const gridElement = document.getElementById('memoryGrid');
             const pairsSpan = document.getElementById('pairsCount');
@@ -165,27 +179,40 @@
 
             function updateStats() {
                 pairsSpan.textContent = `${matchedPairs} / 8`;
+                pairsSpan.setAttribute('aria-label', `已配對${matchedPairs}對，共8對`);
                 stepsSpan.textContent = steps;
+                stepsSpan.setAttribute('aria-label', `當前步數：${steps}`);
             }
 
             function checkWin() {
                 if (matchedPairs === 8) {
                     let msg = `🎉 恭喜完成！ 步數：${steps}`;
+                    let ariaMsg = `恭喜完成遊戲，步數：${steps}`;
+                    
                     if (bestSteps === null || steps < bestSteps) {
                         bestSteps = steps;
-                        localStorage.setItem('memoryBest', bestSteps);
+                        try {
+                            localStorage.setItem('memoryBest', bestSteps.toString());
+                        } catch (e) {
+                            console.warn('無法保存到localStorage:', e);
+                        }
                         msg += ` 🏆 新紀錄！最佳步數 ${bestSteps}`;
+                        ariaMsg += `，新紀錄！最佳步數${bestSteps}`;
                     } else {
                         msg += `  最佳紀錄：${bestSteps} 步`;
+                        ariaMsg += `，最佳紀錄：${bestSteps}步`;
                     }
                     winMessageDiv.textContent = msg;
+                    winMessageDiv.setAttribute('aria-label', ariaMsg);
                 } else {
                     winMessageDiv.textContent = '';
+                    winMessageDiv.removeAttribute('aria-label');
                 }
             }
 
             function initCards() {
                 let deck = [...emojis, ...emojis];
+                // Fisher-Yates shuffle
                 for (let i = deck.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -200,29 +227,88 @@
                 matchedPairs = 0;
                 steps = 0;
                 lockBoard = false;
-                if (timeoutHandle) clearTimeout(timeoutHandle);
+                if (timeoutHandle) {
+                    clearTimeout(timeoutHandle);
+                    timeoutHandle = null;
+                }
                 updateStats();
                 winMessageDiv.textContent = '';
+                winMessageDiv.removeAttribute('aria-label');
+                cardElements = [];
             }
 
-            function renderBoard() {
-                gridElement.innerHTML = '';
-                cards.forEach((card, index) => {
-                    const cardDiv = document.createElement('div');
-                    cardDiv.className = 'card';
-                    if (card.matched) {
-                        cardDiv.classList.add('matched');
-                        cardDiv.textContent = card.emoji;
-                    } else if (card.flipped) {
-                        cardDiv.classList.add('flipped');
-                        cardDiv.textContent = card.emoji;
-                    } else {
-                        cardDiv.textContent = '?';
-                    }
-                    cardDiv.dataset.index = index;
-                    cardDiv.addEventListener('click', () => onCardClick(index));
-                    gridElement.appendChild(cardDiv);
-                });
+            function createCardElement(card, index) {
+                const cardDiv = document.createElement('button');
+                cardDiv.className = 'card';
+                cardDiv.setAttribute('type', 'button');
+                cardDiv.setAttribute('aria-label', `卡片${index + 1}，未翻開`);
+                cardDiv.dataset.index = index;
+                
+                if (card.matched) {
+                    cardDiv.classList.add('matched');
+                    cardDiv.textContent = card.emoji;
+                    cardDiv.setAttribute('aria-label', `卡片${index + 1}，已配對，圖案：${card.emoji}`);
+                    cardDiv.disabled = true;
+                } else if (card.flipped) {
+                    cardDiv.classList.add('flipped');
+                    cardDiv.textContent = card.emoji;
+                    cardDiv.setAttribute('aria-label', `卡片${index + 1}，已翻開，圖案：${card.emoji}`);
+                } else {
+                    cardDiv.textContent = '?';
+                    cardDiv.setAttribute('aria-label', `卡片${index + 1}，未翻開`);
+                }
+                
+                return cardDiv;
+            }
+
+            function updateCardElement(cardElement, card, index) {
+                // 移除所有狀態類別
+                cardElement.classList.remove('flipped', 'matched');
+                
+                if (card.matched) {
+                    cardElement.classList.add('matched');
+                    cardElement.textContent = card.emoji;
+                    cardElement.setAttribute('aria-label', `卡片${index + 1}，已配對，圖案：${card.emoji}`);
+                    cardElement.disabled = true;
+                } else if (card.flipped) {
+                    cardElement.classList.add('flipped');
+                    cardElement.textContent = card.emoji;
+                    cardElement.setAttribute('aria-label', `卡片${index + 1}，已翻開，圖案：${card.emoji}`);
+                    cardElement.disabled = false;
+                } else {
+                    cardElement.textContent = '?';
+                    cardElement.setAttribute('aria-label', `卡片${index + 1}，未翻開`);
+                    cardElement.disabled = false;
+                }
+            }
+
+            function renderBoard(forceRender = false) {
+                if (forceRender || cardElements.length === 0) {
+                    // 初次渲染或強制重新渲染
+                    gridElement.innerHTML = '';
+                    cardElements = [];
+                    
+                    cards.forEach((card, index) => {
+                        const cardElement = createCardElement(card, index);
+                        cardElement.addEventListener('click', () => onCardClick(index));
+                        gridElement.appendChild(cardElement);
+                        cardElements[index] = cardElement;
+                    });
+                } else {
+                    // 只更新改變的卡片
+                    flippedIndexes.forEach(index => {
+                        if (cardElements[index]) {
+                            updateCardElement(cardElements[index], cards[index], index);
+                        }
+                    });
+                    
+                    // 如果配對了，更新配對的卡片
+                    cards.forEach((card, index) => {
+                        if (card.matched && cardElements[index]) {
+                            updateCardElement(cardElements[index], card, index);
+                        }
+                    });
+                }
             }
 
             function onCardClick(index) {
@@ -233,7 +319,11 @@
 
                 cards[index].flipped = true;
                 flippedIndexes.push(index);
-                renderBoard();
+                
+                // 只更新被點擊的卡片
+                if (cardElements[index]) {
+                    updateCardElement(cardElements[index], cards[index], index);
+                }
 
                 if (flippedIndexes.length === 2) {
                     steps++;
@@ -253,7 +343,14 @@
                     matchedPairs++;
                     updateStats();
                     flippedIndexes = [];
-                    renderBoard();
+                    
+                    // 更新配對的卡片
+                    [idx1, idx2].forEach(idx => {
+                        if (cardElements[idx]) {
+                            updateCardElement(cardElements[idx], cards[idx], idx);
+                        }
+                    });
+                    
                     checkWin();
                 } else {
                     lockBoard = true;
@@ -262,10 +359,16 @@
                         card2.flipped = false;
                         flippedIndexes = [];
                         lockBoard = false;
-                        renderBoard();
+                        
+                        // 更新翻回的卡片
+                        [idx1, idx2].forEach(idx => {
+                            if (cardElements[idx]) {
+                                updateCardElement(cardElements[idx], cards[idx], idx);
+                            }
+                        });
+                        
                         timeoutHandle = null;
                     }, 800);
-                    renderBoard();
                 }
             }
 
@@ -275,13 +378,24 @@
                     timeoutHandle = null;
                 }
                 initCards();
-                renderBoard();
+                renderBoard(true);
             }
 
-            initCards();
-            renderBoard();
+            // 添加鍵盤導航支援
+            function handleKeyDown(e) {
+                if (e.key === 'Escape') {
+                    resetGame();
+                } else if (e.key === ' ' || e.key === 'Spacebar') {
+                    e.preventDefault();
+                    resetGame();
+                }
+            }
 
+            document.addEventListener('keydown', handleKeyDown);
             document.getElementById('resetGame').addEventListener('click', resetGame);
+
+            initCards();
+            renderBoard(true);
         })();
     </script>
 </body>

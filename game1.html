@@ -112,25 +112,41 @@
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-link">⬅️ 返回主頁</a>
-    <div class="game-container">
-        <h2>🔢 猜數字</h2>
-        <div class="best" id="bestScore">🏆 最佳紀錄：--</div>
-        <div class="target-range">1 ~ 100</div>
-        <input type="number" id="guessInput" min="1" max="100" placeholder="輸入數字" value="">
+    <a href="index.html" class="back-link" aria-label="返回遊戲主頁">⬅️ 返回主頁</a>
+    <div class="game-container" role="main" aria-labelledby="game-title">
+        <h2 id="game-title">🔢 猜數字</h2>
+        <div class="best" id="bestScore" aria-live="polite">🏆 最佳紀錄：--</div>
+        <div class="target-range" aria-label="猜數字範圍：1到100">1 ~ 100</div>
+        <input type="number" id="guessInput" min="1" max="100" placeholder="輸入數字" value=""
+               aria-label="輸入猜測的數字" aria-describedby="input-hint">
         <div class="buttons">
-            <button id="guessBtn">猜</button>
-            <button id="resetBtn" class="reset">新一局</button>
+            <button id="guessBtn" aria-label="提交猜測">猜</button>
+            <button id="resetBtn" class="reset" aria-label="開始新遊戲">新一局</button>
         </div>
-        <div class="message" id="message">請開始猜測</div>
-        <div class="attempts" id="attempts">已猜次數：0</div>
+        <div class="message" id="message" role="alert" aria-live="assertive">請開始猜測</div>
+        <div class="attempts" id="attempts" aria-live="polite">已猜次數：0</div>
+        <div id="input-hint" style="display:none;">輸入1到100之間的數字，然後按Enter或點擊猜按鈕</div>
     </div>
 
     <script>
         (function() {
+            const MAX_ATTEMPTS = 20;
             let secretNumber = Math.floor(Math.random() * 100) + 1;
             let attempts = 0;
-            let bestAttempts = localStorage.getItem('guessBest') ? parseInt(localStorage.getItem('guessBest')) : null;
+            let bestAttempts = null;
+            
+            // 安全地從localStorage讀取最佳紀錄
+            try {
+                const stored = localStorage.getItem('guessBest');
+                if (stored) {
+                    const parsed = parseInt(stored, 10);
+                    if (!isNaN(parsed) && parsed > 0) {
+                        bestAttempts = parsed;
+                    }
+                }
+            } catch (e) {
+                console.warn('無法讀取localStorage:', e);
+            }
 
             const guessInput = document.getElementById('guessInput');
             const messageDiv = document.getElementById('message');
@@ -140,18 +156,45 @@
             function updateBestDisplay() {
                 if (bestAttempts) {
                     bestSpan.textContent = `🏆 最佳紀錄：${bestAttempts} 次`;
+                    bestSpan.setAttribute('aria-label', `最佳紀錄：${bestAttempts}次`);
                 } else {
                     bestSpan.textContent = `🏆 最佳紀錄：--`;
+                    bestSpan.setAttribute('aria-label', '尚未有最佳紀錄');
                 }
             }
 
             function checkAndUpdateBest() {
                 if (bestAttempts === null || attempts < bestAttempts) {
                     bestAttempts = attempts;
-                    localStorage.setItem('guessBest', bestAttempts);
+                    try {
+                        localStorage.setItem('guessBest', bestAttempts.toString());
+                    } catch (e) {
+                        console.warn('無法保存到localStorage:', e);
+                    }
                     updateBestDisplay();
                     messageDiv.textContent = `🎉 新紀錄！${bestAttempts} 次猜中！ 🎉`;
                 }
+            }
+
+            function validateInput(inputValue) {
+                // 去除前後空白
+                const trimmed = inputValue.trim();
+                if (trimmed === '') {
+                    return { valid: false, message: '⚠️ 請輸入數字' };
+                }
+                
+                // 檢查是否為數字
+                const val = parseInt(trimmed, 10);
+                if (isNaN(val)) {
+                    return { valid: false, message: '⚠️ 請輸入有效的數字' };
+                }
+                
+                // 檢查範圍
+                if (val < 1 || val > 100) {
+                    return { valid: false, message: '⚠️ 請輸入 1~100 的數字' };
+                }
+                
+                return { valid: true, value: val };
             }
 
             function resetGame() {
@@ -159,41 +202,68 @@
                 attempts = 0;
                 guessInput.value = '';
                 messageDiv.textContent = '新遊戲開始！輸入 1~100';
+                messageDiv.setAttribute('aria-label', '新遊戲開始，請輸入1到100之間的數字');
                 attemptsSpan.textContent = '已猜次數：0';
+                attemptsSpan.setAttribute('aria-label', '已猜次數：0');
                 guessInput.focus();
             }
 
-            document.getElementById('guessBtn').addEventListener('click', function() {
-                const val = parseInt(guessInput.value, 10);
-                if (isNaN(val) || val < 1 || val > 100) {
-                    messageDiv.textContent = '⚠️ 請輸入 1~100 的數字';
+            function handleGuess() {
+                const validation = validateInput(guessInput.value);
+                if (!validation.valid) {
+                    messageDiv.textContent = validation.message;
+                    messageDiv.setAttribute('aria-label', validation.message);
+                    guessInput.focus();
                     return;
                 }
+                
+                const val = validation.value;
+                
+                // 檢查嘗試次數限制
+                if (attempts >= MAX_ATTEMPTS - 1) {
+                    messageDiv.textContent = `❌ 已達${MAX_ATTEMPTS}次嘗試限制！答案是 ${secretNumber}`;
+                    messageDiv.setAttribute('aria-label', `已達${MAX_ATTEMPTS}次嘗試限制，答案是${secretNumber}`);
+                    guessInput.disabled = true;
+                    return;
+                }
+                
                 attempts++;
                 attemptsSpan.textContent = `已猜次數：${attempts}`;
+                attemptsSpan.setAttribute('aria-label', `已猜次數：${attempts}`);
 
                 if (val === secretNumber) {
                     messageDiv.textContent = `🎉 猜中了！ 就是 ${secretNumber} ！`;
+                    messageDiv.setAttribute('aria-label', `猜中了！答案是${secretNumber}`);
                     checkAndUpdateBest();
                 } else if (val < secretNumber) {
                     messageDiv.textContent = '📉 太小了，再大一點';
+                    messageDiv.setAttribute('aria-label', '太小了，請猜大一點的數字');
                 } else {
                     messageDiv.textContent = '📈 太大了，再小一點';
+                    messageDiv.setAttribute('aria-label', '太大了，請猜小一點的數字');
                 }
+                
                 guessInput.value = '';
                 guessInput.focus();
-            });
+            }
 
-            document.getElementById('resetBtn').addEventListener('click', resetGame);
+            document.getElementById('guessBtn').addEventListener('click', handleGuess);
+
+            document.getElementById('resetBtn').addEventListener('click', function() {
+                guessInput.disabled = false;
+                resetGame();
+            });
 
             guessInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
-                    document.getElementById('guessBtn').click();
+                    handleGuess();
                 }
             });
 
+            // 初始顯示最佳紀錄，但不重置遊戲
             updateBestDisplay();
-            resetGame();
+            messageDiv.textContent = '請輸入1到100之間的數字開始猜測';
+            messageDiv.setAttribute('aria-label', '請輸入1到100之間的數字開始猜測');
         })();
     </script>
 </body>

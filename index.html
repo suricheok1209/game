@@ -247,77 +247,77 @@
 </head>
 <body>
     <div class="main-wrapper">
-        <div class="hero">
+        <div class="hero" role="banner">
             <h1>🎮 我的遊戲館</h1>
             <p>經典懷舊・免費暢玩・持續更新<br>點擊卡片立即開始你的遊戲之旅</p>
         </div>
 
-        <div class="features">
-            <div class="feature-card">
-                <div class="feature-icon">🕹️</div>
+        <div class="features" role="region" aria-label="特色功能">
+            <div class="feature-card" role="article">
+                <div class="feature-icon" aria-hidden="true">🕹️</div>
                 <div class="feature-title">經典懷舊</div>
                 <div class="feature-desc">猜數字、記憶配對、貪吃蛇，重溫不敗經典</div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">🎯</div>
+            <div class="feature-card" role="article">
+                <div class="feature-icon" aria-hidden="true">🎯</div>
                 <div class="feature-title">免費暢玩</div>
                 <div class="feature-desc">全部遊戲無需付費，即開即玩</div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">🚀</div>
+            <div class="feature-card" role="article">
+                <div class="feature-icon" aria-hidden="true">🚀</div>
                 <div class="feature-title">持續更新</div>
                 <div class="feature-desc">更多趣味遊戲陸續上架，敬請期待</div>
             </div>
         </div>
 
-        <div class="section-title">🔥 精選遊戲 🔥</div>
+        <div class="section-title" role="heading" aria-level="2">🔥 精選遊戲 🔥</div>
 
-        <div class="games-grid">
-            <a href="game1.html" class="game-card">
-                <div class="icon">🔢</div>
+        <div class="games-grid" role="navigation" aria-label="遊戲選擇">
+            <a href="game1.html" class="game-card" role="link" aria-label="猜數字遊戲：1到100猜中神秘數字，挑戰最少步數">
+                <div class="icon" aria-hidden="true">🔢</div>
                 <div class="game-title">猜數字</div>
                 <div class="game-desc">1~100 猜中神秘數字，挑戰最少步數</div>
                 <span class="play-badge">▶ 開始挑戰</span>
             </a>
-            <a href="game2.html" class="game-card">
-                <div class="icon">🧠</div>
+            <a href="game2.html" class="game-card" role="link" aria-label="記憶配對遊戲：翻牌配對，考驗你的記憶與策略">
+                <div class="icon" aria-hidden="true">🧠</div>
                 <div class="game-title">記憶配對</div>
                 <div class="game-desc">翻牌配對，考驗你的記憶與策略</div>
                 <span class="play-badge">▶ 開始挑戰</span>
             </a>
-            <a href="game3.html" class="game-card">
-                <div class="icon">🐍</div>
+            <a href="game3.html" class="game-card" role="link" aria-label="貪吃蛇遊戲：經典貪吃蛇，三級難度，挑戰最高分">
+                <div class="icon" aria-hidden="true">🐍</div>
                 <div class="game-title">貪吃蛇</div>
                 <div class="game-desc">經典貪吃蛇，三級難度，挑戰最高分</div>
                 <span class="play-badge">▶ 開始挑戰</span>
             </a>
         </div>
 
-        <div class="featured-section">
+        <div class="featured-section" role="region" aria-label="熱門遊戲">
             <div class="featured-title">⭐ 最多人玩 ⭐</div>
             <div class="mini-games">
-                <div class="mini-item">
-                    <div class="mini-icon">🐍</div>
+                <div class="mini-item" role="listitem">
+                    <div class="mini-icon" aria-hidden="true">🐍</div>
                     <div class="mini-name">貪吃蛇</div>
                 </div>
-                <div class="mini-item">
-                    <div class="mini-icon">🧠</div>
+                <div class="mini-item" role="listitem">
+                    <div class="mini-icon" aria-hidden="true">🧠</div>
                     <div class="mini-name">記憶配對</div>
                 </div>
-                <div class="mini-item">
-                    <div class="mini-icon">🔢</div>
+                <div class="mini-item" role="listitem">
+                    <div class="mini-icon" aria-hidden="true">🔢</div>
                     <div class="mini-name">猜數字</div>
                 </div>
             </div>
         </div>
 
-        <footer>
+        <footer role="contentinfo">
             <div>© 2026 我的遊戲館 · 所有遊戲免費提供</div>
-            <div class="social-links">
-                <a href="#" target="_blank">📘</a>
-                <a href="#" target="_blank">🐦</a>
-                <a href="#" target="_blank">📺</a>
-                <a href="#" target="_blank">💬</a>
+            <div class="social-links" aria-label="社交媒體連結">
+                <a href="#" target="_blank" aria-label="Facebook">📘</a>
+                <a href="#" target="_blank" aria-label="Twitter">🐦</a>
+                <a href="#" target="_blank" aria-label="YouTube">📺</a>
+                <a href="#" target="_blank" aria-label="討論區">💬</a>
             </div>
             <div style="font-size: 1rem; margin-top: 15px;">懷舊永不退流行 · 開心就在遊戲館</div>
         </footer>
